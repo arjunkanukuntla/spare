@@ -7,7 +7,6 @@ import {
   Clock, 
   ShieldCheck, 
   Utensils, 
-  CheckCircle2, 
   Flag 
 } from 'lucide-react';
 
@@ -27,6 +26,7 @@ export const ListingDetailModal: React.FC<ListingDetailModalProps> = ({ listing,
   if (!listing) return null;
 
   const isFood = listing.category === 'Food';
+  const isPaid = listing.distributionType === 'SURPLUS_SALE' || listing.price > 0;
 
   const handleReportSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,9 +57,11 @@ export const ListingDetailModal: React.FC<ListingDetailModalProps> = ({ listing,
           </button>
 
           <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
-            <span className="bg-emerald-600 text-white font-black text-xs px-3 py-1 rounded-full shadow">
-              {listing.distributionType === 'FREE' ? 'FREE' : `₹${listing.price}`}
-            </span>
+            {isPaid ? (
+              <span className="bg-amber-600 text-white font-black text-xs px-3 py-1 rounded-full shadow">
+                ₹{listing.price}
+              </span>
+            ) : <div />}
             <span className="bg-slate-900/80 text-white text-[10px] font-semibold px-2.5 py-1 rounded-full backdrop-blur-md flex items-center gap-1">
               <MapPin className="w-3 h-3 text-emerald-400" /> {listing.distanceKm} km away
             </span>
@@ -71,7 +73,7 @@ export const ListingDetailModal: React.FC<ListingDetailModalProps> = ({ listing,
           
           <div className="space-y-1">
             <div className="flex items-center justify-between text-[11px] text-slate-500">
-              <span className="uppercase font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
+              <span className="uppercase font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded">
                 {listing.category}
               </span>
               <button 
@@ -116,7 +118,7 @@ export const ListingDetailModal: React.FC<ListingDetailModalProps> = ({ listing,
           <div className="grid grid-cols-2 gap-2.5">
             <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200">
               <p className="text-[10px] text-slate-500 font-medium">Available</p>
-              <p className="text-sm font-black text-emerald-600">{listing.remainingQuantity} {listing.unit}</p>
+              <p className="text-sm font-black text-slate-900">{listing.remainingQuantity} {listing.unit}</p>
             </div>
             <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200">
               <p className="text-[10px] text-slate-500 font-medium">Pickup Deadline</p>
@@ -153,7 +155,7 @@ export const ListingDetailModal: React.FC<ListingDetailModalProps> = ({ listing,
         <div className="p-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-3 flex-shrink-0">
           <div>
             <p className="text-[10px] text-slate-500 font-medium">Self Pickup</p>
-            <p className="text-xs font-bold text-emerald-700">FREE</p>
+            <p className="text-xs font-bold text-slate-900">{isPaid ? `₹${listing.price}` : 'Free'}</p>
           </div>
           <button
             onClick={() => {

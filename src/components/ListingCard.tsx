@@ -1,6 +1,6 @@
 import React from 'react';
 import { Listing } from '../types';
-import { MapPin, Clock, ArrowUpRight, ShieldCheck } from 'lucide-react';
+import { Clock, ShieldCheck, MapPin } from 'lucide-react';
 
 interface ListingCardProps {
   listing: Listing;
@@ -9,9 +9,11 @@ interface ListingCardProps {
 }
 
 export const ListingCard: React.FC<ListingCardProps> = ({ listing, onSelect, onClaimQuick }) => {
+  const isPaid = listing.distributionType === 'SURPLUS_SALE' || listing.price > 0;
+
   return (
     <div 
-      className="bg-white rounded-3xl border border-slate-200/80 shadow-app-card hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col justify-between group cursor-pointer"
+      className="bg-white rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col justify-between group cursor-pointer"
       onClick={() => onSelect(listing)}
     >
       {/* Cover Image Container */}
@@ -22,34 +24,29 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing, onSelect, onC
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
         
-        {/* FREE Tag Pill */}
-        <div className="absolute top-3 left-3">
-          {listing.distributionType === 'FREE' ? (
-            <span className="bg-emerald-600 text-white font-black text-[11px] px-3 py-1 rounded-full shadow-md tracking-wider">
-              FREE
-            </span>
-          ) : (
-            <span className="bg-slate-900 text-white font-black text-[11px] px-3 py-1 rounded-full shadow-md">
+        {/* ONLY show price badge if paid/sale item - FREE is default on SPARE */}
+        {isPaid && (
+          <div className="absolute top-2.5 left-2.5">
+            <span className="bg-amber-600 text-white font-black text-[11px] px-2.5 py-0.5 rounded-full shadow-md">
               ₹{listing.price}
             </span>
-          )}
-        </div>
-
-        {/* Distance Badge */}
-        <div className="absolute top-3 right-3 bg-slate-900/80 text-white text-[10px] font-bold px-2.5 py-1 rounded-full backdrop-blur-md flex items-center gap-1">
-          <MapPin className="w-3 h-3 text-emerald-400" />
-          <span>{listing.distanceKm} km</span>
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Card Content Body */}
-      <div className="p-3.5 space-y-2.5 flex-1 flex flex-col justify-between">
+      <div className="p-3.5 space-y-2 flex-1 flex flex-col justify-between">
         <div className="space-y-1">
-          {/* Provider Badge */}
-          <div className="flex items-center gap-1 text-[11px] text-slate-500 font-semibold">
-            <img src={listing.providerAvatar} alt={listing.providerName} className="w-4 h-4 rounded-full object-cover" />
-            <span className="truncate max-w-[120px]">{listing.providerName}</span>
-            {listing.isVerifiedProvider && <ShieldCheck className="w-3 h-3 text-emerald-600 flex-shrink-0" />}
+          {/* Provider & Distance Subtitle Line */}
+          <div className="flex items-center justify-between text-[11px] text-slate-500 font-semibold">
+            <div className="flex items-center gap-1 min-w-0">
+              <img src={listing.providerAvatar} alt={listing.providerName} className="w-3.5 h-3.5 rounded-full object-cover flex-shrink-0" />
+              <span className="truncate">{listing.providerName}</span>
+              {listing.isVerifiedProvider && <ShieldCheck className="w-3 h-3 text-emerald-600 flex-shrink-0" />}
+            </div>
+            <span className="text-slate-400 flex-shrink-0 flex items-center gap-0.5">
+              <MapPin className="w-3 h-3 text-slate-400" /> {listing.distanceKm} km
+            </span>
           </div>
 
           {/* Title */}
@@ -57,13 +54,13 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing, onSelect, onC
             {listing.title}
           </h3>
 
-          {/* Quantity & Condition pill */}
+          {/* Quantity & Condition */}
           <div className="flex items-center gap-1.5 text-[11px] text-slate-600">
-            <span className="font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
+            <span className="font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md">
               {listing.remainingQuantity} {listing.unit}
             </span>
             {listing.condition && (
-              <span className="bg-slate-100 font-medium px-2 py-0.5 rounded-md text-slate-600">
+              <span className="text-slate-500 font-medium">
                 {listing.condition}
               </span>
             )}
@@ -72,7 +69,7 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing, onSelect, onC
 
         {/* Footer: Pickup Time & Claim Button */}
         <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-1 text-[11px] text-slate-500 font-medium">
+          <div className="flex items-center gap-1 text-[11px] text-slate-500 font-medium min-w-0">
             <Clock className="w-3 h-3 text-amber-500 flex-shrink-0" />
             <span className="truncate">{listing.pickupDeadlineTime}</span>
           </div>
@@ -83,14 +80,13 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing, onSelect, onC
               onClaimQuick(listing);
             }}
             disabled={listing.remainingQuantity <= 0}
-            className={`font-extrabold text-xs py-1.5 px-3.5 rounded-xl transition flex items-center gap-1 flex-shrink-0 ${
+            className={`font-extrabold text-xs py-1.5 px-3.5 rounded-xl transition flex-shrink-0 ${
               listing.remainingQuantity > 0
                 ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm active:scale-95'
                 : 'bg-slate-200 text-slate-400 cursor-not-allowed'
             }`}
           >
-            <span>{listing.remainingQuantity > 0 ? 'Claim' : 'Claimed'}</span>
-            <ArrowUpRight className="w-3 h-3" />
+            {listing.remainingQuantity > 0 ? 'Claim' : 'Claimed'}
           </button>
         </div>
       </div>
