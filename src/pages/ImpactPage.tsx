@@ -1,90 +1,69 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
-import { Globe2, Utensils, Package, Users, TrendingUp, Clock, CheckCircle2, Sparkles } from 'lucide-react';
+import { Globe2, Utensils, Package, Users, TrendingUp, Clock, CheckCircle2 } from 'lucide-react';
 
 export const ImpactPage: React.FC = () => {
   const { impact } = useApp();
 
   return (
-    <div className="space-y-8 pb-24 md:pb-12 max-w-7xl mx-auto px-4 py-6">
+    <div className="space-y-5 px-4 py-5 overflow-x-hidden">
       
-      {/* Hero Banner */}
-      <section className="bg-gradient-to-br from-slate-900 via-emerald-950 to-slate-900 rounded-3xl p-6 sm:p-10 text-white relative overflow-hidden border border-emerald-500/30 shadow-2xl space-y-4">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/20 text-emerald-400 font-bold text-xs rounded-full">
-          <Globe2 className="w-3.5 h-3.5" /> Real-time Platform Telemetry
-        </div>
-        <h1 className="text-3xl sm:text-5xl font-black tracking-tight">SPARE Hyperlocal Impact</h1>
-        <p className="text-slate-300 text-xs sm:text-sm max-w-xl">
-          Quantifying the environmental and economic power of hyperlocal surplus redistribution across food, academic tools, household gear, and community supplies.
-        </p>
-      </section>
+      {/* Header */}
+      <div className="space-y-1">
+        <h1 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+          <Globe2 className="w-6 h-6 text-emerald-600" /> Platform impact
+        </h1>
+        <p className="text-xs text-slate-500">Real-time statistics across the network.</p>
+      </div>
 
-      {/* Primary 6 Impact Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-card space-y-2 hover:border-emerald-500/50 transition">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Meals Redistributed</span>
-            <div className="p-2.5 bg-emerald-100 text-emerald-800 rounded-2xl">
-              <Utensils className="w-5 h-5" />
-            </div>
+      {/* Metrics Grid */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-1">
+          <div className="flex items-center gap-1.5 text-emerald-700">
+            <Utensils className="w-4 h-4" />
+            <span className="text-xs font-bold">Meals shared</span>
           </div>
-          <p className="text-3xl font-black text-slate-900">{impact.mealsRedistributed.toLocaleString()}</p>
-          <p className="text-xs text-emerald-700 font-semibold">🍛 Unserved meals diverted from landfill</p>
+          <p className="text-2xl font-black text-slate-900">{impact.mealsRedistributed.toLocaleString()}</p>
         </div>
 
-        <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-card space-y-2 hover:border-emerald-500/50 transition">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Items Reused</span>
-            <div className="p-2.5 bg-teal-100 text-teal-800 rounded-2xl">
-              <Package className="w-5 h-5" />
-            </div>
+        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-1">
+          <div className="flex items-center gap-1.5 text-teal-700">
+            <Package className="w-4 h-4" />
+            <span className="text-xs font-bold">Items reused</span>
           </div>
-          <p className="text-3xl font-black text-slate-900">{impact.itemsReused.toLocaleString()}</p>
-          <p className="text-xs text-teal-700 font-semibold">📦 Calculators, textbooks & gear given second life</p>
+          <p className="text-2xl font-black text-slate-900">{impact.itemsReused.toLocaleString()}</p>
         </div>
 
-        <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-card space-y-2 hover:border-emerald-500/50 transition">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">People & NGOs Helped</span>
-            <div className="p-2.5 bg-indigo-100 text-indigo-800 rounded-2xl">
-              <Users className="w-5 h-5" />
-            </div>
+        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-1">
+          <div className="flex items-center gap-1.5 text-indigo-700">
+            <Users className="w-4 h-4" />
+            <span className="text-xs font-bold">People reached</span>
           </div>
-          <p className="text-3xl font-black text-slate-900">{impact.peopleHelped.toLocaleString()}</p>
-          <p className="text-xs text-indigo-700 font-semibold">👥 Individuals & shelter communities served</p>
+          <p className="text-2xl font-black text-slate-900">{impact.peopleHelped.toLocaleString()}</p>
         </div>
 
-        <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-card space-y-2 hover:border-emerald-500/50 transition">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Estimated Value Rescued</span>
-            <div className="p-2.5 bg-amber-100 text-amber-800 rounded-2xl">
-              <TrendingUp className="w-5 h-5" />
-            </div>
+        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-1">
+          <div className="flex items-center gap-1.5 text-amber-700">
+            <TrendingUp className="w-4 h-4" />
+            <span className="text-xs font-bold">Rescued value</span>
           </div>
-          <p className="text-3xl font-black text-slate-900">₹{(impact.valueRescuedInr / 100000).toFixed(2)} Lakhs</p>
-          <p className="text-xs text-amber-700 font-semibold">₹ Hyperlocal financial value preserved</p>
+          <p className="text-2xl font-black text-slate-900">₹{(impact.valueRescuedInr / 100000).toFixed(1)}L</p>
         </div>
 
-        <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-card space-y-2 hover:border-emerald-500/50 transition">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Avg Time to Claim</span>
-            <div className="p-2.5 bg-blue-100 text-blue-800 rounded-2xl">
-              <Clock className="w-5 h-5" />
-            </div>
+        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-1">
+          <div className="flex items-center gap-1.5 text-blue-700">
+            <Clock className="w-4 h-4" />
+            <span className="text-xs font-bold">Avg claim time</span>
           </div>
-          <p className="text-3xl font-black text-slate-900">{impact.avgTimeToClaimMins} Mins</p>
-          <p className="text-xs text-blue-700 font-semibold">⏱ Rapid matching velocity</p>
+          <p className="text-2xl font-black text-slate-900">{impact.avgTimeToClaimMins}m</p>
         </div>
 
-        <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-card space-y-2 hover:border-emerald-500/50 transition">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Redistribution Rate</span>
-            <div className="p-2.5 bg-emerald-100 text-emerald-800 rounded-2xl">
-              <CheckCircle2 className="w-5 h-5" />
-            </div>
+        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-1">
+          <div className="flex items-center gap-1.5 text-emerald-700">
+            <CheckCircle2 className="w-4 h-4" />
+            <span className="text-xs font-bold">Completed rate</span>
           </div>
-          <p className="text-3xl font-black text-slate-900">{impact.successRatePercent}%</p>
-          <p className="text-xs text-emerald-700 font-semibold">♻️ Completed transaction rate</p>
+          <p className="text-2xl font-black text-slate-900">{impact.successRatePercent}%</p>
         </div>
       </div>
 

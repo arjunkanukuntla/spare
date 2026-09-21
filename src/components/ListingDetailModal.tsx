@@ -6,10 +6,6 @@ import {
   MapPin, 
   Clock, 
   ShieldCheck, 
-  AlertOctagon, 
-  Share2, 
-  Heart, 
-  Sparkles, 
   Utensils, 
   CheckCircle2, 
   Flag 
@@ -22,7 +18,7 @@ interface ListingDetailModalProps {
 }
 
 export const ListingDetailModal: React.FC<ListingDetailModalProps> = ({ listing, onClose, onClaim }) => {
-  const { submitReport, currentUser } = useApp();
+  const { submitReport } = useApp();
   const [reportOpen, setReportOpen] = useState(false);
   const [reportReason, setReportReason] = useState('Unsafe food handling');
   const [reportDetails, setReportDetails] = useState('');
@@ -43,11 +39,11 @@ export const ListingDetailModal: React.FC<ListingDetailModalProps> = ({ listing,
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-white text-slate-900 rounded-3xl max-w-2xl w-full overflow-hidden shadow-2xl animate-in zoom-in-95 my-8">
+    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-end sm:items-center justify-center">
+      <div className="bg-white text-slate-900 rounded-t-3xl sm:rounded-3xl max-w-md w-full overflow-hidden shadow-2xl animate-in slide-in-from-bottom-5 max-h-[90vh] flex flex-col">
         
-        {/* Gallery / Cover Header */}
-        <div className="relative h-64 sm:h-72 w-full bg-slate-900">
+        {/* Cover Header */}
+        <div className="relative h-56 w-full bg-slate-900 flex-shrink-0">
           <img 
             src={listing.images[0]} 
             alt={listing.title} 
@@ -55,154 +51,109 @@ export const ListingDetailModal: React.FC<ListingDetailModalProps> = ({ listing,
           />
           <button 
             onClick={onClose}
-            className="absolute top-4 right-4 bg-slate-900/80 hover:bg-slate-900 text-white p-2 rounded-full backdrop-blur-md transition"
+            className="absolute top-3 right-3 bg-slate-900/80 text-white p-1.5 rounded-full backdrop-blur-md transition"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
 
-          <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between">
-            <span className="bg-emerald-600 text-white font-black text-sm px-3.5 py-1 rounded-full shadow-lg">
-              {listing.distributionType === 'FREE' ? 'FREE (₹0)' : `SURPLUS SALE ₹${listing.price}`}
+          <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+            <span className="bg-emerald-600 text-white font-black text-xs px-3 py-1 rounded-full shadow">
+              {listing.distributionType === 'FREE' ? 'FREE' : `₹${listing.price}`}
             </span>
-            <div className="flex items-center gap-2">
-              <span className="bg-slate-900/80 text-white text-xs font-semibold px-3 py-1 rounded-full backdrop-blur-md flex items-center gap-1">
-                <MapPin className="w-3.5 h-3.5 text-emerald-400" /> {listing.distanceKm} km away
-              </span>
-            </div>
+            <span className="bg-slate-900/80 text-white text-[10px] font-semibold px-2.5 py-1 rounded-full backdrop-blur-md flex items-center gap-1">
+              <MapPin className="w-3 h-3 text-emerald-400" /> {listing.distanceKm} km away
+            </span>
           </div>
         </div>
 
         {/* Modal Body */}
-        <div className="p-6 space-y-6 max-h-[60vh] overflow-y-auto">
+        <div className="p-4 space-y-4 overflow-y-auto flex-1">
           
-          {/* Header Title & Provider */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-xs text-slate-500">
-              <span className="uppercase font-bold tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg">
-                Category: {listing.category}
+          <div className="space-y-1">
+            <div className="flex items-center justify-between text-[11px] text-slate-500">
+              <span className="uppercase font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
+                {listing.category}
               </span>
               <button 
                 onClick={() => setReportOpen(!reportOpen)} 
-                className="flex items-center gap-1 text-slate-400 hover:text-rose-600 text-xs font-semibold"
+                className="flex items-center gap-1 text-slate-400 hover:text-rose-600 text-[11px] font-semibold"
               >
-                <Flag className="w-3.5 h-3.5" /> Report listing
+                <Flag className="w-3 h-3" /> Report
               </button>
             </div>
 
-            <h2 className="text-xl font-extrabold text-slate-900">{listing.title}</h2>
+            <h2 className="text-base font-extrabold text-slate-900 leading-snug">{listing.title}</h2>
 
-            <div className="flex items-center gap-3 pt-1 border-t border-slate-100">
+            <div className="flex items-center gap-2 pt-1">
               <img 
                 src={listing.providerAvatar} 
                 alt={listing.providerName} 
-                className="w-10 h-10 rounded-full object-cover ring-2 ring-emerald-500/30"
+                className="w-7 h-7 rounded-full object-cover ring-1 ring-emerald-500/30"
               />
-              <div>
-                <p className="text-sm font-bold text-slate-900 flex items-center gap-1">
-                  {listing.providerName}
-                  {listing.isVerifiedProvider && <ShieldCheck className="w-4 h-4 text-emerald-600" />}
-                </p>
-                <p className="text-xs text-slate-500">{listing.providerRole} Provider • {listing.location}</p>
-              </div>
+              <span className="text-xs font-bold text-slate-800 flex items-center gap-1">
+                {listing.providerName}
+                {listing.isVerifiedProvider && <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />}
+              </span>
             </div>
           </div>
 
-          {/* Description */}
-          <div className="space-y-1">
-            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Description</h4>
-            <p className="text-sm text-slate-700 leading-relaxed">{listing.description}</p>
-          </div>
+          <p className="text-xs text-slate-600 leading-relaxed">{listing.description}</p>
 
-          {/* Food Safety & Details Card (If Food) */}
+          {/* Food Details if applicable */}
           {isFood && listing.foodDetails && (
-            <div className="bg-emerald-50/80 border border-emerald-200/80 rounded-2xl p-4 space-y-3">
-              <div className="flex items-center gap-2 text-emerald-900 font-bold text-xs uppercase tracking-wider">
-                <Utensils className="w-4 h-4 text-emerald-700" /> Food Safety & Storage Verification
+            <div className="bg-emerald-50 border border-emerald-200/80 rounded-2xl p-3 space-y-2 text-xs">
+              <div className="flex items-center gap-1.5 text-emerald-900 font-bold text-xs">
+                <Utensils className="w-3.5 h-3.5 text-emerald-700" /> Food Details
               </div>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div>
-                  <span className="text-slate-500">Dietary:</span>{' '}
-                  <span className="font-bold text-slate-800">{listing.foodDetails.vegetarian ? '🌱 Vegetarian' : '🍖 Non-Veg'}</span>
-                </div>
-                <div>
-                  <span className="text-slate-500">Storage:</span>{' '}
-                  <span className="font-bold text-slate-800">{listing.foodDetails.storageCondition}</span>
-                </div>
-                <div>
-                  <span className="text-slate-500">Packaging:</span>{' '}
-                  <span className="font-bold text-slate-800">{listing.foodDetails.packagingStatus}</span>
-                </div>
-                <div>
-                  <span className="text-slate-500">Prep Time:</span>{' '}
-                  <span className="font-bold text-slate-800">{listing.foodDetails.preparationTime}</span>
-                </div>
+              <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-700">
+                <div>Diet: <strong className="text-slate-900">{listing.foodDetails.vegetarian ? '🌱 Veg' : '🍖 Non-Veg'}</strong></div>
+                <div>Storage: <strong className="text-slate-900">{listing.foodDetails.storageCondition}</strong></div>
               </div>
-              {listing.foodDetails.safetyConfirmed && (
-                <div className="flex items-center gap-1.5 text-[11px] text-emerald-800 font-semibold bg-emerald-100/80 p-2 rounded-xl">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-700" />
-                  Provider confirmed food safety & hygiene standards.
-                </div>
-              )}
             </div>
           )}
 
-          {/* Quantity & Pickup Specs */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
-              <p className="text-xs text-slate-500 font-semibold">Remaining Available</p>
-              <p className="text-lg font-black text-emerald-600">{listing.remainingQuantity} {listing.unit}</p>
+          {/* Quantity & Pickup Deadline */}
+          <div className="grid grid-cols-2 gap-2.5">
+            <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+              <p className="text-[10px] text-slate-500 font-medium">Available</p>
+              <p className="text-sm font-black text-emerald-600">{listing.remainingQuantity} {listing.unit}</p>
             </div>
-            <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
-              <p className="text-xs text-slate-500 font-semibold">Pickup Deadline</p>
-              <p className="text-sm font-bold text-slate-900">{listing.pickupDeadlineTime}</p>
+            <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+              <p className="text-[10px] text-slate-500 font-medium">Pickup Deadline</p>
+              <p className="text-xs font-bold text-slate-900 mt-0.5">{listing.pickupDeadlineTime}</p>
             </div>
           </div>
 
-          {/* Report Modal Accordion */}
+          {/* Report Accordion */}
           {reportOpen && (
-            <form onSubmit={handleReportSubmit} className="bg-rose-50 border border-rose-200 p-4 rounded-2xl space-y-3">
-              <h4 className="text-xs font-bold text-rose-900 flex items-center gap-1">
-                <AlertOctagon className="w-4 h-4 text-rose-600" /> Report Listing to SPARE Moderation
-              </h4>
-              <div>
-                <label className="text-xs text-slate-700 font-semibold block mb-1">Reason</label>
-                <select 
-                  value={reportReason}
-                  onChange={(e) => setReportReason(e.target.value)}
-                  className="w-full bg-white border border-rose-300 rounded-xl p-2 text-xs text-slate-900"
-                >
-                  <option value="Unsafe food handling">Unsafe food handling / storage</option>
-                  <option value="Misleading details">Misleading details / wrong photo</option>
-                  <option value="Wrong location">Incorrect location</option>
-                  <option value="Commercial resale scam">Commercial resale scam</option>
-                  <option value="Already unavailable">Already unavailable</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-xs text-slate-700 font-semibold block mb-1">Additional details</label>
-                <textarea 
-                  value={reportDetails}
-                  onChange={(e) => setReportDetails(e.target.value)}
-                  placeholder="Explain why this listing violates SPARE guidelines..."
-                  className="w-full bg-white border border-rose-300 rounded-xl p-2 text-xs text-slate-900 h-16"
-                />
-              </div>
+            <form onSubmit={handleReportSubmit} className="bg-rose-50 border border-rose-200 p-3 rounded-2xl space-y-2 text-xs">
+              <h4 className="font-bold text-rose-900">Report Listing</h4>
+              <select 
+                value={reportReason}
+                onChange={(e) => setReportReason(e.target.value)}
+                className="w-full bg-white border border-rose-300 rounded-lg p-1.5 text-xs text-slate-900"
+              >
+                <option value="Unsafe food handling">Unsafe handling</option>
+                <option value="Misleading details">Misleading details</option>
+                <option value="Wrong location">Incorrect location</option>
+                <option value="Already unavailable">Already unavailable</option>
+              </select>
               <button 
                 type="submit" 
-                className="bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs py-2 px-4 rounded-xl w-full"
+                className="bg-rose-600 text-white font-bold text-xs py-1.5 px-3 rounded-lg w-full"
               >
-                {reportSubmitted ? 'Report Submitted ✓' : 'Submit Report'}
+                {reportSubmitted ? 'Submitted ✓' : 'Submit Report'}
               </button>
             </form>
           )}
 
         </div>
 
-        {/* Modal Footer CTA */}
-        <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-3">
+        {/* Footer CTA */}
+        <div className="p-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-3 flex-shrink-0">
           <div>
-            <p className="text-xs text-slate-500 font-medium">Hyperlocal Pickup</p>
-            <p className="text-xs font-bold text-emerald-700">₹0 Free Redistribution</p>
+            <p className="text-[10px] text-slate-500 font-medium">Self Pickup</p>
+            <p className="text-xs font-bold text-emerald-700">FREE</p>
           </div>
           <button
             onClick={() => {
@@ -210,13 +161,13 @@ export const ListingDetailModal: React.FC<ListingDetailModalProps> = ({ listing,
               onClaim(listing);
             }}
             disabled={listing.remainingQuantity <= 0}
-            className={`font-bold text-sm py-3 px-6 rounded-2xl shadow-lg transition transform active:scale-95 ${
+            className={`font-bold text-xs py-2.5 px-5 rounded-xl transition ${
               listing.remainingQuantity > 0
-                ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                : 'bg-slate-300 text-slate-500 cursor-not-allowed'
+                ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow'
+                : 'bg-slate-200 text-slate-400 cursor-not-allowed'
             }`}
           >
-            {listing.remainingQuantity > 0 ? 'Proceed to Claim' : 'Fully Claimed'}
+            {listing.remainingQuantity > 0 ? 'Claim' : 'Claimed'}
           </button>
         </div>
 

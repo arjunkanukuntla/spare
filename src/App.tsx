@@ -46,24 +46,24 @@ const AppContent: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900">
+    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-start overflow-x-hidden">
       
-      {/* Top Floating Hackathon Demo Bar */}
-      <DemoSwitcher />
-
-      {/* Main Layout Container */}
-      <div className="flex-1 flex max-w-7xl w-full mx-auto">
+      {/* Mobile App Viewport Shell Container */}
+      <div className="w-full max-w-md min-h-screen bg-slate-50 text-slate-900 flex flex-col shadow-2xl relative overflow-x-hidden border-x border-slate-800/60">
         
-        {/* Desktop Sidebar & Mobile Navigation */}
-        <Navigation />
+        {/* Top Header Role Switcher Bar */}
+        <DemoSwitcher />
 
         {/* Dynamic Page Views */}
-        <main className="flex-1 min-w-0">
+        <main className="flex-1 pb-20 overflow-x-hidden">
           {renderActivePage()}
         </main>
+
+        {/* Mobile Bottom Navigation Bar */}
+        <Navigation />
       </div>
 
-      {/* Global Modals & Guided Demo Engine */}
+      {/* Global Modals */}
       <DemoTourModal />
       <OnboardingModal />
       <GiveModal />
