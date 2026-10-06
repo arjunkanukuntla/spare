@@ -16,7 +16,6 @@ import { HomePage } from './pages/HomePage';
 import { FindPage } from './pages/FindPage';
 import { ActivityPage } from './pages/ActivityPage';
 import { ProfilePage } from './pages/ProfilePage';
-import { CampusJoinPage } from './pages/CampusJoinPage';
 import { AdminPage } from './pages/AdminPage';
 
 const MainAppContent: React.FC = () => {
@@ -46,8 +45,6 @@ const MainAppContent: React.FC = () => {
         return <ActivityPage />;
       case 'profile':
         return <ProfilePage />;
-      case 'join':
-        return <CampusJoinPage />;
       case 'admin':
         return <AdminPage />;
       default:
@@ -57,7 +54,7 @@ const MainAppContent: React.FC = () => {
 
   return (
     <AppShell>
-      {/* Top Bar with Brand, Campus Pill, & Profile */}
+      {/* Top Bar with Brand & User Profile */}
       <TopBar />
 
       {/* Main Responsive Body Layout (Desktop Sidebar + Main Content) */}

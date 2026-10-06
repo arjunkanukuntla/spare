@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
-import { Bell, MapPin, Plus, User as UserIcon, ShieldCheck, QrCode } from 'lucide-react';
+import { Bell, MapPin, Plus, User as UserIcon, ShieldCheck } from 'lucide-react';
 
 export const TopBar: React.FC = () => {
   const { 
     currentUser, 
-    organization, 
     notifications, 
     setActiveTab, 
     setGiveModalOpen, 
-    setAuthModalOpen,
     markNotificationRead 
   } = useApp();
 
@@ -20,7 +18,7 @@ export const TopBar: React.FC = () => {
     <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-stone-200/80 px-4 lg:px-8 py-3">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
         
-        {/* Brand Logo & Campus Pill */}
+        {/* Brand Logo & Location Pill */}
         <div className="flex items-center gap-3">
           <button 
             onClick={() => setActiveTab('home')} 
@@ -39,27 +37,16 @@ export const TopBar: React.FC = () => {
             </div>
           </button>
 
-          {/* Campus Location Badge */}
+          {/* Location Badge */}
           <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 bg-stone-100 rounded-full border border-stone-200 text-xs text-stone-700 font-medium">
             <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-            <span className="truncate max-w-[180px]">{organization.name}</span>
-            <span className="text-[10px] text-stone-400 font-normal">({currentUser.department || 'Campus'})</span>
+            <span className="truncate">Local Area</span>
           </div>
         </div>
 
-        {/* Actions (Desktop Give CTA, Notifications, Join QR, Profile) */}
+        {/* Actions (Desktop Give CTA, Notifications, Profile) */}
         <div className="flex items-center gap-2.5">
           
-          {/* Join Campus QR button */}
-          <button
-            onClick={() => setActiveTab('join')}
-            className="hidden md:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-stone-700 hover:text-emerald-700 bg-stone-100 hover:bg-emerald-50 rounded-lg border border-stone-200 hover:border-emerald-200 transition-all"
-            title="Campus QR Code & Posters"
-          >
-            <QrCode className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Campus QR</span>
-          </button>
-
           {/* Prominent Desktop "Give Something" CTA */}
           <button
             onClick={() => setGiveModalOpen(true)}

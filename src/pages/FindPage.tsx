@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { Listing, ListingCategory } from '../types';
 import { ListingCard } from '../components/ui/ListingCard';
-import { Search, Filter, Sparkles } from 'lucide-react';
+import { Search } from 'lucide-react';
 
 interface FindPageProps {
   onSelectListing: (listing: Listing) => void;
@@ -24,22 +24,18 @@ export const FindPage: React.FC<FindPageProps> = ({ onSelectListing, onClaimList
     setSelectedCategory,
     selectedCondition,
     setSelectedCondition,
-    organization
   } = useApp();
 
   const activeListings = listings.filter(l => l.status === 'ACTIVE');
 
   // Filter listings by searchQuery, category, condition
   const filteredListings = activeListings.filter((l) => {
-    // Category filter
     if (selectedCategory !== 'All' && l.category !== selectedCategory) {
       return false;
     }
-    // Condition filter
     if (selectedCondition !== 'All' && l.condition !== selectedCondition) {
       return false;
     }
-    // Search query filter
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       const matchTitle = l.title.toLowerCase().includes(q);
@@ -58,7 +54,7 @@ export const FindPage: React.FC<FindPageProps> = ({ onSelectListing, onClaimList
       <div className="space-y-3">
         <h1 className="text-2xl font-extrabold text-stone-900">Find Items</h1>
         <p className="text-xs text-stone-500">
-          Discover surplus items available for free pickup near {organization.name}
+          Discover surplus items available for free pickup near your area
         </p>
 
         {/* Search Field */}

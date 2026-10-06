@@ -1,9 +1,9 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
-import { Shield, Users, Package, FileText, CheckCircle2, AlertTriangle, Activity, Database } from 'lucide-react';
+import { Shield, Users, Package, FileText, CheckCircle2 } from 'lucide-react';
 
 export const AdminPage: React.FC = () => {
-  const { adminMetrics, listings, requests, reports, users, organization } = useApp();
+  const { adminMetrics, users } = useApp();
 
   return (
     <div className="max-w-7xl mx-auto px-4 lg:px-8 py-6 space-y-8 animate-in fade-in duration-200">
@@ -16,7 +16,7 @@ export const AdminPage: React.FC = () => {
             <h1 className="text-2xl font-extrabold text-stone-900">Admin Dashboard</h1>
           </div>
           <p className="text-xs text-stone-500 mt-0.5">
-            Real-time platform telemetry & operations for {organization.name}
+            Real-time platform telemetry & operations
           </p>
         </div>
 
@@ -33,7 +33,7 @@ export const AdminPage: React.FC = () => {
             <Users className="w-4 h-4 text-emerald-600" />
           </div>
           <p className="text-2xl font-extrabold text-stone-900 mt-2">{adminMetrics.totalUsers}</p>
-          <p className="text-[11px] text-emerald-700 font-medium mt-1">100% Verified Campus</p>
+          <p className="text-[11px] text-emerald-700 font-medium mt-1">100% Verified Users</p>
         </div>
 
         <div className="p-4 bg-white rounded-2xl border border-stone-200 shadow-xs">
@@ -79,7 +79,7 @@ export const AdminPage: React.FC = () => {
 
       {/* Content Moderation / Users List */}
       <div className="p-6 bg-white rounded-3xl border border-stone-200 space-y-4">
-        <h3 className="font-bold text-stone-900 text-sm">Registered Campus Users ({users.length})</h3>
+        <h3 className="font-bold text-stone-900 text-sm">Registered Users ({users.length})</h3>
         <div className="divide-y divide-stone-100">
           {users.map(u => (
             <div key={u.id} className="py-3 flex items-center justify-between">
@@ -87,7 +87,7 @@ export const AdminPage: React.FC = () => {
                 <img src={u.avatar} alt={u.name} className="w-8 h-8 rounded-full object-cover" />
                 <div>
                   <p className="text-xs font-bold text-stone-900">{u.name}</p>
-                  <p className="text-[11px] text-stone-500">{u.email} • {u.department || 'Campus'} {u.year || ''}</p>
+                  <p className="text-[11px] text-stone-500">{u.email} • {u.approximateLocation}</p>
                 </div>
               </div>
 

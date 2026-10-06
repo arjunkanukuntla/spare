@@ -3,8 +3,7 @@ import { useApp } from '../context/AppContext';
 import { Listing, RequestItem } from '../types';
 import { ListingCard } from '../components/ui/ListingCard';
 import { RequestCard } from '../components/ui/RequestCard';
-import { MatchingEngine } from '../services/matchingEngine';
-import { Search, PlusCircle, ArrowRight, Clock, Sparkles, MapPin, Zap, ShieldCheck } from 'lucide-react';
+import { Search, PlusCircle, ArrowRight, Clock, ShieldCheck } from 'lucide-react';
 
 interface HomePageProps {
   onSelectListing: (listing: Listing) => void;
@@ -14,10 +13,10 @@ interface HomePageProps {
 const SEARCH_SUGGESTIONS = [
   'Scientific Calculator',
   'Laptop Charger',
-  'Engineering Maths Book',
+  'Engineering Book',
   'Digital Multimeter',
   'Arduino Board',
-  'Lab Coat',
+  'Tools',
   'Event Meals'
 ];
 
@@ -25,7 +24,6 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectListing, onClaimList
   const { 
     listings, 
     requests, 
-    organization, 
     searchQuery, 
     setSearchQuery, 
     setActiveTab, 
@@ -35,8 +33,6 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectListing, onClaimList
 
   const activeListings = listings.filter(l => l.status === 'ACTIVE');
   const openRequests = requests.filter(r => r.status === 'OPEN');
-  
-  // Filter food listings expiring soon
   const expiringFoodListings = activeListings.filter(l => l.category === 'Food' && l.pickupDeadline);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -61,13 +57,13 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectListing, onClaimList
           <div className="text-center sm:text-left">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white text-emerald-800 rounded-full border border-emerald-200 text-xs font-semibold shadow-xs mb-2">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-              <span>SPARE at {organization.name}</span>
+              <span>SPARE — Local Surplus Exchange</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-stone-900 tracking-tight">
               What do you need today?
             </h1>
             <p className="text-xs sm:text-sm text-stone-600 mt-1 max-w-xl">
-              Gifting surplus calculators, chargers, books, lab gear, & food directly within campus. 100% free permanent transfer.
+              Gifting surplus calculators, chargers, books, tools, & food directly within your local area. 100% free permanent transfer.
             </p>
           </div>
 
@@ -154,7 +150,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectListing, onClaimList
                 </div>
                 <div>
                   <h2 className="font-bold text-stone-900 text-base">Expiring Soon (Food Surplus)</h2>
-                  <p className="text-xs text-stone-500">Pick up time-sensitive event & canteen food before deadline</p>
+                  <p className="text-xs text-stone-500">Pick up time-sensitive event food before deadline</p>
                 </div>
               </div>
             </div>
@@ -177,7 +173,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectListing, onClaimList
           <div className="flex items-center justify-between">
             <div>
               <h2 className="font-bold text-stone-900 text-lg">Available near you</h2>
-              <p className="text-xs text-stone-500">Items posted by students & departments near {organization.name}</p>
+              <p className="text-xs text-stone-500">Items posted by people in your area</p>
             </div>
             <button
               onClick={() => setActiveTab('find')}
@@ -220,7 +216,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectListing, onClaimList
           <div className="flex items-center justify-between">
             <div>
               <h2 className="font-bold text-stone-900 text-lg">People are looking for</h2>
-              <p className="text-xs text-stone-500">Campus requests waiting for a match</p>
+              <p className="text-xs text-stone-500">Requests waiting for a match</p>
             </div>
           </div>
 

@@ -30,8 +30,8 @@ interface AppContextType {
   adminMetrics: AdminMetrics;
 
   // Navigation & View state
-  activeTab: 'home' | 'find' | 'activity' | 'profile' | 'admin' | 'join';
-  setActiveTab: (tab: 'home' | 'find' | 'activity' | 'profile' | 'admin' | 'join') => void;
+  activeTab: 'home' | 'find' | 'activity' | 'profile' | 'admin';
+  setActiveTab: (tab: 'home' | 'find' | 'activity' | 'profile' | 'admin') => void;
   
   // Search & Filters
   searchQuery: string;
@@ -81,7 +81,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [reports, setReports] = useState<Report[]>(dbService.getReports());
   const [adminMetrics, setAdminMetrics] = useState<AdminMetrics>(dbService.getAdminMetrics());
 
-  const [activeTab, setActiveTab] = useState<'home' | 'find' | 'activity' | 'profile' | 'admin' | 'join'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'find' | 'activity' | 'profile' | 'admin'>('home');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<ListingCategory | 'All'>('All');
   const [selectedCondition, setSelectedCondition] = useState<string | 'All'>('All');
@@ -106,14 +106,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     refreshData();
   }, [refreshData]);
-
-  // Handle URL deep links like /?join=sru or /?listing=xxx
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('join') === 'sru' || window.location.pathname === '/join') {
-      setActiveTab('join');
-    }
-  }, []);
 
   const triggerConfetti = () => {
     try {

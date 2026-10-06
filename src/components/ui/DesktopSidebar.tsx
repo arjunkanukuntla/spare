@@ -1,9 +1,9 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
-import { Home, Search, PlusCircle, Activity, User, Shield, QrCode, Sparkles } from 'lucide-react';
+import { Home, Search, PlusCircle, Activity, User, Shield, Sparkles } from 'lucide-react';
 
 export const DesktopSidebar: React.FC = () => {
-  const { activeTab, setActiveTab, setGiveModalOpen, currentUser, claims, exchanges } = useApp();
+  const { activeTab, setActiveTab, setGiveModalOpen, claims, exchanges } = useApp();
 
   const activeCount = claims.filter(c => c.status === 'pending').length + 
                       exchanges.filter(e => e.status === 'accepted' || e.status === 'pickup_pending').length;
@@ -13,7 +13,6 @@ export const DesktopSidebar: React.FC = () => {
     { id: 'find', label: 'Find Items', icon: Search },
     { id: 'activity', label: 'Activity & Exchanges', icon: Activity, badge: activeCount },
     { id: 'profile', label: 'My Profile', icon: User },
-    { id: 'join', label: 'Campus QR / Posters', icon: QrCode },
     { id: 'admin', label: 'Admin Dashboard', icon: Shield },
   ];
 
@@ -24,7 +23,7 @@ export const DesktopSidebar: React.FC = () => {
       <div className="mb-6 p-4 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 text-white shadow-md shadow-emerald-600/20">
         <h3 className="font-bold text-sm">Have something spare?</h3>
         <p className="text-xs text-emerald-100 mt-1 leading-relaxed">
-          Help someone in your campus by giving what you no longer need.
+          Give what you no longer need. Find what you do.
         </p>
         <button
           onClick={() => setGiveModalOpen(true)}
@@ -64,11 +63,11 @@ export const DesktopSidebar: React.FC = () => {
         })}
       </nav>
 
-      {/* Trust & Campus Badge */}
+      {/* Trust & Local Community Badge */}
       <div className="pt-4 border-t border-stone-200 text-xs text-stone-500">
         <div className="flex items-center gap-2 font-medium text-stone-700">
           <Shield className="w-3.5 h-3.5 text-emerald-600" />
-          <span>SR University Campus</span>
+          <span>Local Community Exchange</span>
         </div>
         <p className="text-[11px] text-stone-400 mt-1">
           Direct local exchange without money, fees, or selling.

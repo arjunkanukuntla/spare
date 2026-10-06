@@ -1,9 +1,9 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
-import { ShieldCheck, Star, PackageCheck, Heart, User, MapPin, Building2, RefreshCw } from 'lucide-react';
+import { ShieldCheck, Star, MapPin, Building2, RefreshCw } from 'lucide-react';
 
 export const ProfilePage: React.FC = () => {
-  const { currentUser, setCurrentUser, users, organization } = useApp();
+  const { currentUser, setCurrentUser, users } = useApp();
 
   return (
     <div className="max-w-4xl mx-auto px-4 lg:px-8 py-6 space-y-6 animate-in fade-in duration-200">
@@ -40,13 +40,8 @@ export const ProfilePage: React.FC = () => {
           <div className="pt-2 flex flex-wrap items-center justify-center sm:justify-start gap-2 text-xs text-stone-600">
             <span className="flex items-center gap-1 bg-stone-100 px-2.5 py-1 rounded-lg">
               <Building2 className="w-3.5 h-3.5 text-emerald-600" />
-              <span>{organization.name}</span>
+              <span>Local Community</span>
             </span>
-            {currentUser.department && (
-              <span className="bg-stone-100 px-2.5 py-1 rounded-lg">
-                {currentUser.department} ({currentUser.year || 'Student'})
-              </span>
-            )}
             <span className="flex items-center gap-1 bg-stone-100 px-2.5 py-1 rounded-lg">
               <MapPin className="w-3.5 h-3.5 text-emerald-600" />
               <span>{currentUser.approximateLocation}</span>
@@ -80,12 +75,12 @@ export const ProfilePage: React.FC = () => {
         </div>
       </div>
 
-      {/* Switch User / Role Testing Section */}
+      {/* Switch User / Testing Section */}
       <div className="p-5 bg-stone-100/70 rounded-3xl border border-stone-200 space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <RefreshCw className="w-4 h-4 text-emerald-600" />
-            <h3 className="font-bold text-stone-900 text-sm">Switch User Account (Development & Testing)</h3>
+            <h3 className="font-bold text-stone-900 text-sm">Switch User Account</h3>
           </div>
           <span className="text-[10px] text-stone-500">Test Give & Claim interactions</span>
         </div>
@@ -110,7 +105,7 @@ export const ProfilePage: React.FC = () => {
                 <div>
                   <p className="text-xs font-semibold">{u.name}</p>
                   <p className={`text-[10px] ${currentUser.id === u.id ? 'text-emerald-100' : 'text-stone-400'}`}>
-                    {u.department ? `${u.department} ${u.year || ''}` : u.role}
+                    {u.approximateLocation}
                   </p>
                 </div>
               </div>
