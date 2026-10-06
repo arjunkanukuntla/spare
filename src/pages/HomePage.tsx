@@ -3,7 +3,7 @@ import { useApp } from '../context/AppContext';
 import { Listing, RequestItem } from '../types';
 import { ListingCard } from '../components/ui/ListingCard';
 import { RequestCard } from '../components/ui/RequestCard';
-import { Search, PlusCircle, ArrowRight, Clock, ShieldCheck } from 'lucide-react';
+import { Search, PlusCircle, ArrowRight, Clock } from 'lucide-react';
 
 interface HomePageProps {
   onSelectListing: (listing: Listing) => void;
@@ -11,13 +11,13 @@ interface HomePageProps {
 }
 
 const SEARCH_SUGGESTIONS = [
-  'Scientific Calculator',
-  'Laptop Charger',
-  'Engineering Book',
-  'Digital Multimeter',
-  'Arduino Board',
+  'Charger',
+  'Calculator',
+  'Books',
+  'Multimeter',
+  'Arduino',
   'Tools',
-  'Event Meals'
+  'Event food'
 ];
 
 export const HomePage: React.FC<HomePageProps> = ({ onSelectListing, onClaimListing }) => {
@@ -48,51 +48,50 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectListing, onClaimList
   };
 
   return (
-    <div className="space-y-8 pb-12 animate-in fade-in duration-200">
+    <div className="space-y-8 pb-24 sm:pb-8 animate-in fade-in duration-200">
       
-      {/* Search & Hero Banner Section */}
-      <section className="bg-gradient-to-b from-emerald-50/60 via-stone-50 to-stone-50 px-4 pt-6 pb-4 border-b border-stone-200/60">
+      {/* Home Hero Section */}
+      <section className="bg-stone-50 px-4 pt-6 pb-2 border-b border-stone-200/60">
         <div className="max-w-4xl mx-auto space-y-4">
           
-          <div className="text-center sm:text-left">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white text-emerald-800 rounded-full border border-emerald-200 text-xs font-semibold shadow-xs mb-2">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-              <span>SPARE — Local Surplus Exchange</span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-stone-900 tracking-tight">
-              What do you need today?
+          <div className="text-left space-y-1">
+            <span className="text-xs font-semibold text-emerald-800 tracking-wide">
+              Give what you don't need. Find what you do.
+            </span>
+            <h1 className="text-2xl sm:text-3xl font-bold text-stone-900 tracking-tight">
+              What do you need?
             </h1>
-            <p className="text-xs sm:text-sm text-stone-600 mt-1 max-w-xl">
-              Gifting surplus calculators, chargers, books, tools, & food directly within your local area. 100% free permanent transfer.
+            <p className="text-xs sm:text-sm text-stone-600 max-w-xl">
+              Find something useful nearby. Or put something you no longer need back into use.
             </p>
           </div>
 
-          {/* Search Input Box */}
+          {/* Search Box */}
           <form onSubmit={handleSearchSubmit} className="relative">
-            <Search className="w-5 h-5 text-stone-400 absolute left-4 top-3.5" />
+            <Search className="w-4 h-4 text-stone-400 absolute left-4 top-3.5 stroke-[1.8]" />
             <input
               type="text"
-              placeholder="Search for something you need (calculator, charger, books)..."
+              placeholder="Search for a charger, calculator, books, tools..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-28 py-3.5 bg-white border border-stone-300/90 rounded-2xl text-stone-900 text-sm shadow-sm focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 focus:outline-none transition-all"
+              className="w-full pl-11 pr-24 py-3 bg-white border border-stone-300 rounded-xl text-stone-900 text-sm shadow-xs focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 focus:outline-none transition-all"
             />
             <button
               type="submit"
-              className="absolute right-2 top-2 bottom-2 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all"
+              className="absolute right-1.5 top-1.5 bottom-1.5 px-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-lg transition-all"
             >
               Search
             </button>
           </form>
 
-          {/* Search Suggestion Chips */}
-          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-1">
-            <span className="text-[11px] font-bold text-stone-400 shrink-0">Try:</span>
+          {/* Suggested Searches */}
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-0.5">
+            <span className="text-[11px] font-medium text-stone-400 shrink-0">Popular:</span>
             {SEARCH_SUGGESTIONS.map((term) => (
               <button
                 key={term}
                 onClick={() => handleSuggestionClick(term)}
-                className="px-2.5 py-1 bg-white hover:bg-emerald-50 text-stone-700 hover:text-emerald-800 text-xs font-medium rounded-lg border border-stone-200 shrink-0 transition-colors"
+                className="px-2.5 py-0.5 bg-white hover:bg-emerald-50 text-stone-600 hover:text-emerald-800 text-xs font-medium rounded-lg border border-stone-200 shrink-0 transition-colors"
               >
                 {term}
               </button>
@@ -103,15 +102,15 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectListing, onClaimList
           <div className="grid grid-cols-2 gap-3 pt-2">
             <button
               onClick={() => setGiveModalOpen(true)}
-              className="p-4 bg-gradient-to-br from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white rounded-2xl shadow-sm text-left flex flex-col justify-between group active:scale-[0.98] transition-all"
+              className="p-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl shadow-xs text-left flex flex-col justify-between group active:scale-[0.98] transition-all"
             >
               <div className="flex items-center justify-between w-full">
-                <span className="text-xl">🎁</span>
-                <PlusCircle className="w-5 h-5 stroke-[2.2] group-hover:rotate-90 transition-transform" />
+                <span className="text-lg">🎁</span>
+                <PlusCircle className="w-5 h-5 stroke-[2] group-hover:rotate-90 transition-transform text-white/90" />
               </div>
               <div className="mt-3">
-                <h3 className="font-bold text-sm">Give something</h3>
-                <p className="text-[11px] text-emerald-100 leading-tight mt-0.5">
+                <h3 className="font-semibold text-sm">Give something</h3>
+                <p className="text-[11px] text-emerald-100 italic mt-0.5">
                   I don't need this anymore
                 </p>
               </div>
@@ -119,16 +118,16 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectListing, onClaimList
 
             <button
               onClick={() => setRequestModalOpen(true)}
-              className="p-4 bg-white hover:bg-stone-50 text-stone-900 border border-stone-200 rounded-2xl shadow-sm text-left flex flex-col justify-between group active:scale-[0.98] transition-all"
+              className="p-4 bg-white hover:bg-stone-50 text-stone-900 border border-stone-200/90 rounded-2xl shadow-xs text-left flex flex-col justify-between group active:scale-[0.98] transition-all"
             >
               <div className="flex items-center justify-between w-full">
-                <span className="text-xl">🙋‍♂️</span>
+                <span className="text-lg">🙋‍♂️</span>
                 <ArrowRight className="w-5 h-5 text-stone-400 group-hover:translate-x-1 transition-transform" />
               </div>
               <div className="mt-3">
-                <h3 className="font-bold text-sm">Request something</h3>
-                <p className="text-[11px] text-stone-500 leading-tight mt-0.5">
-                  I've been looking for this
+                <h3 className="font-semibold text-sm">Request something</h3>
+                <p className="text-[11px] text-stone-500 italic mt-0.5">
+                  I'm looking for this
                 </p>
               </div>
             </button>
@@ -137,21 +136,19 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectListing, onClaimList
         </div>
       </section>
 
-      {/* Main Content Sections Container */}
-      <div className="max-w-7xl mx-auto px-4 lg:px-8 space-y-10">
+      {/* Main Content Sections */}
+      <div className="max-w-7xl mx-auto px-4 lg:px-8 space-y-9">
         
-        {/* Section 1: Expiring Soon (Food items) */}
+        {/* Section 1: Expiring Soon (Food items only) */}
         {expiringFoodListings.length > 0 && (
-          <section className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-amber-100 text-amber-800 rounded-lg">
-                  <Clock className="w-4 h-4" />
-                </div>
-                <div>
-                  <h2 className="font-bold text-stone-900 text-base">Expiring Soon (Food Surplus)</h2>
-                  <p className="text-xs text-stone-500">Pick up time-sensitive event food before deadline</p>
-                </div>
+          <section className="space-y-3">
+            <div className="flex items-center gap-2">
+              <div className="p-1 bg-amber-100 text-amber-800 rounded-md">
+                <Clock className="w-4 h-4" />
+              </div>
+              <div>
+                <h2 className="font-bold text-stone-900 text-base">Expiring soon</h2>
+                <p className="text-xs text-stone-500">Time-sensitive food surplus</p>
               </div>
             </div>
 
@@ -168,16 +165,16 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectListing, onClaimList
           </section>
         )}
 
-        {/* Section 2: Available Near You */}
-        <section className="space-y-4">
+        {/* Section 2: Available near you */}
+        <section className="space-y-3">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="font-bold text-stone-900 text-lg">Available near you</h2>
-              <p className="text-xs text-stone-500">Items posted by people in your area</p>
+              <p className="text-xs text-stone-500">Items people have put up nearby</p>
             </div>
             <button
               onClick={() => setActiveTab('find')}
-              className="text-xs font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-1"
+              className="text-xs font-semibold text-emerald-700 hover:text-emerald-800 flex items-center gap-1"
             >
               <span>View all</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -185,16 +182,16 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectListing, onClaimList
           </div>
 
           {activeListings.length === 0 ? (
-            <div className="p-10 text-center bg-white rounded-3xl border border-stone-200">
-              <p className="font-bold text-stone-700 text-sm">Nothing nearby yet.</p>
+            <div className="p-8 text-center bg-white rounded-2xl border border-stone-200">
+              <h3 className="font-bold text-stone-800 text-sm">Nothing nearby yet.</h3>
               <p className="text-xs text-stone-500 mt-1">
-                Be the first to put something useful back into circulation.
+                Be the first to put something useful back into use.
               </p>
               <button
                 onClick={() => setGiveModalOpen(true)}
-                className="mt-4 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs"
+                className="mt-3 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-xl shadow-xs"
               >
-                Give Something Now
+                Give something
               </button>
             </div>
           ) : (
@@ -212,18 +209,18 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectListing, onClaimList
         </section>
 
         {/* Section 3: People are looking for */}
-        <section className="space-y-4">
+        <section className="space-y-3">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="font-bold text-stone-900 text-lg">People are looking for</h2>
-              <p className="text-xs text-stone-500">Requests waiting for a match</p>
+              <p className="text-xs text-stone-500">Requests from people around you</p>
             </div>
           </div>
 
           {openRequests.length === 0 ? (
-            <div className="p-8 text-center bg-white rounded-3xl border border-stone-200">
-              <p className="font-bold text-stone-700 text-sm">No requests open right now.</p>
-              <p className="text-xs text-stone-500 mt-1">You can create a request if you need something!</p>
+            <div className="p-8 text-center bg-white rounded-2xl border border-stone-200">
+              <h3 className="font-bold text-stone-800 text-sm">No requests nearby.</h3>
+              <p className="text-xs text-stone-500 mt-1">Someone might be looking for what you have.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

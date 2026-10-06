@@ -1,41 +1,42 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
-import { Home, Search, PlusCircle, Activity, User, Shield, Sparkles } from 'lucide-react';
+import { Home, Search, PlusCircle, Activity, User, Shield } from 'lucide-react';
 
 export const DesktopSidebar: React.FC = () => {
-  const { activeTab, setActiveTab, setGiveModalOpen, claims, exchanges } = useApp();
+  const { activeTab, setActiveTab, setGiveModalOpen, currentUser, claims, exchanges } = useApp();
 
   const activeCount = claims.filter(c => c.status === 'pending').length + 
                       exchanges.filter(e => e.status === 'accepted' || e.status === 'pickup_pending').length;
 
+  const isAdmin = currentUser.role === 'ADMIN';
+
   const navItems = [
     { id: 'home', label: 'Home', icon: Home },
-    { id: 'find', label: 'Find Items', icon: Search },
-    { id: 'activity', label: 'Activity & Exchanges', icon: Activity, badge: activeCount },
-    { id: 'profile', label: 'My Profile', icon: User },
-    { id: 'admin', label: 'Admin Dashboard', icon: Shield },
+    { id: 'find', label: 'Find', icon: Search },
+    { id: 'activity', label: 'Activity', icon: Activity, badge: activeCount },
+    { id: 'profile', label: 'Profile', icon: User },
   ];
 
+  if (isAdmin) {
+    navItems.push({ id: 'admin', label: 'Admin Dashboard', icon: Shield, badge: 0 });
+  }
+
   return (
-    <aside className="hidden lg:flex flex-col w-64 border-r border-stone-200/80 bg-white min-h-[calc(100vh-61px)] p-5 shrink-0">
+    <aside className="hidden lg:flex flex-col w-60 border-r border-stone-200/80 bg-white min-h-[calc(100vh-61px)] p-4 shrink-0">
       
-      {/* Primary Give CTA Card */}
-      <div className="mb-6 p-4 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 text-white shadow-md shadow-emerald-600/20">
-        <h3 className="font-bold text-sm">Have something spare?</h3>
-        <p className="text-xs text-emerald-100 mt-1 leading-relaxed">
-          Give what you no longer need. Find what you do.
-        </p>
+      {/* Primary Give Action */}
+      <div className="mb-5">
         <button
           onClick={() => setGiveModalOpen(true)}
-          className="mt-3.5 w-full flex items-center justify-center gap-2 py-2 px-3 bg-white text-emerald-800 hover:bg-emerald-50 font-bold text-xs rounded-xl transition-all shadow-sm active:scale-[0.98]"
+          className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-xl transition-all shadow-xs active:scale-[0.98]"
         >
-          <PlusCircle className="w-4 h-4 text-emerald-600" />
-          <span>Give an Item</span>
+          <PlusCircle className="w-4 h-4 stroke-[2.2]" />
+          <span>Give something</span>
         </button>
       </div>
 
       {/* Navigation Links */}
-      <nav className="space-y-1.5 flex-1">
+      <nav className="space-y-1 flex-1">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
@@ -43,9 +44,9 @@ export const DesktopSidebar: React.FC = () => {
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id as any)}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all ${
                 isActive
-                  ? 'bg-emerald-50 text-emerald-800 font-bold border border-emerald-200/60'
+                  ? 'bg-emerald-50 text-emerald-800 font-semibold border border-emerald-200/60'
                   : 'text-stone-600 hover:bg-stone-100 hover:text-stone-900'
               }`}
             >
@@ -63,14 +64,11 @@ export const DesktopSidebar: React.FC = () => {
         })}
       </nav>
 
-      {/* Trust & Local Community Badge */}
-      <div className="pt-4 border-t border-stone-200 text-xs text-stone-500">
-        <div className="flex items-center gap-2 font-medium text-stone-700">
-          <Shield className="w-3.5 h-3.5 text-emerald-600" />
-          <span>Local Community Exchange</span>
-        </div>
-        <p className="text-[11px] text-stone-400 mt-1">
-          Direct local exchange without money, fees, or selling.
+      {/* Subtle Supporting Text */}
+      <div className="pt-4 border-t border-stone-100 text-[11px] text-stone-500 space-y-1">
+        <p className="font-semibold text-stone-700">SPARE Network</p>
+        <p className="text-stone-400 leading-tight">
+          Give what you don't need. Find what you do.
         </p>
       </div>
 

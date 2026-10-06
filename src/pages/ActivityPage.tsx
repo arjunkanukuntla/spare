@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { Claim, Exchange, Listing } from '../types';
-import { Check, X, Clock, MapPin, CheckCircle, AlertCircle, ArrowRight, Activity, ShieldCheck } from 'lucide-react';
+import { Check, X, Clock, MapPin, CheckCircle, AlertCircle, ArrowRight } from 'lucide-react';
 
 export const ActivityPage: React.FC = () => {
   const { 
@@ -25,11 +25,11 @@ export const ActivityPage: React.FC = () => {
   const myExchanges = exchanges.filter(e => e.giverId === currentUser.id || e.receiverId === currentUser.id);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 lg:px-8 py-6 space-y-6 animate-in fade-in duration-200">
+    <div className="max-w-7xl mx-auto px-4 lg:px-8 py-6 space-y-6 pb-24 sm:pb-8 animate-in fade-in duration-200">
       
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-extrabold text-stone-900">Activity & Exchanges</h1>
+        <h1 className="text-2xl font-extrabold text-stone-900">Activity</h1>
         <p className="text-xs text-stone-500">Track your claims, items given, requests, and active handovers</p>
       </div>
 
