@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { Listing, RequestItem } from '../types';
+import { Listing } from '../types';
 import { ListingCard } from '../components/ui/ListingCard';
 import { RequestCard } from '../components/ui/RequestCard';
+import { PromotionSlot } from '../components/ui/PromotionSlot';
 import { Search, PlusCircle, ArrowRight, Clock } from 'lucide-react';
 
 interface HomePageProps {
@@ -30,6 +31,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectListing, onClaimList
     setGiveModalOpen, 
     setRequestModalOpen 
   } = useApp();
+
+  const [visibleCount, setVisibleCount] = useState(8);
 
   const activeListings = listings.filter(l => l.status === 'ACTIVE');
   const openRequests = requests.filter(r => r.status === 'OPEN');
@@ -139,6 +142,9 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectListing, onClaimList
       {/* Main Content Sections */}
       <div className="max-w-7xl mx-auto px-4 lg:px-8 space-y-9">
         
+        {/* Optional Promotion Slot (Renders NULL if no active promotion exists) */}
+        <PromotionSlot placement="home_feed" />
+
         {/* Section 1: Expiring Soon (Food items only) */}
         {expiringFoodListings.length > 0 && (
           <section className="space-y-3">
@@ -195,15 +201,29 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectListing, onClaimList
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {activeListings.slice(0, 8).map(listing => (
-                <ListingCard
-                  key={listing.id}
-                  listing={listing}
-                  onSelect={onSelectListing}
-                  onClaim={onClaimListing}
-                />
-              ))}
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {activeListings.slice(0, visibleCount).map(listing => (
+                  <ListingCard
+                    key={listing.id}
+                    listing={listing}
+                    onSelect={onSelectListing}
+                    onClaim={onClaimListing}
+                  />
+                ))}
+              </div>
+
+              {/* Load More Pagination */}
+              {activeListings.length > visibleCount && (
+                <div className="text-center pt-2">
+                  <button
+                    onClick={() => setVisibleCount(prev => prev + 8)}
+                    className="px-5 py-2 bg-white hover:bg-stone-50 border border-stone-200 text-stone-800 font-semibold text-xs rounded-xl shadow-xs transition-all"
+                  >
+                    Load more items
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </section>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { AppShell } from './components/ui/AppShell';
 import { TopBar } from './components/ui/TopBar';
@@ -16,7 +16,9 @@ import { HomePage } from './pages/HomePage';
 import { FindPage } from './pages/FindPage';
 import { ActivityPage } from './pages/ActivityPage';
 import { ProfilePage } from './pages/ProfilePage';
-import { AdminPage } from './pages/AdminPage';
+
+// Code-Split Heavy Admin Dashboard Page (Lazy Loaded ONLY when Admin accesses it)
+const AdminPage = lazy(() => import('./pages/AdminPage').then(m => ({ default: m.AdminPage })));
 
 const MainAppContent: React.FC = () => {
   const { 
@@ -46,7 +48,15 @@ const MainAppContent: React.FC = () => {
       case 'profile':
         return <ProfilePage />;
       case 'admin':
-        return <AdminPage />;
+        return (
+          <Suspense fallback={
+            <div className="p-12 text-center text-xs font-semibold text-stone-500">
+              Loading Admin Telemetry...
+            </div>
+          }>
+            <AdminPage />
+          </Suspense>
+        );
       default:
         return <HomePage onSelectListing={setSelectedListing} onClaimListing={handleOpenClaim} />;
     }

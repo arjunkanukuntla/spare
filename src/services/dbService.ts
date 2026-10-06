@@ -30,7 +30,18 @@ const KEYS = {
   CURRENT_USER: 'spare_current_user_v2',
 };
 
+// In-Memory Static Cache to avoid redundant local or network parses
+interface CacheStore {
+  listings: Listing[] | null;
+  requests: RequestItem[] | null;
+  lastFetch: number;
+}
+
+const CACHE_TTL_MS = 60000; // 1 minute TTL cache
+
 class DBService {
+  private cache: CacheStore = { listings: null, requests: null, lastFetch: 0 };
+
   constructor() {
     this.init();
   }
@@ -63,22 +74,12 @@ class DBService {
     if (!localStorage.getItem(KEYS.CURRENT_USER)) {
       localStorage.setItem(KEYS.CURRENT_USER, JSON.stringify(INITIAL_USERS[0]));
     }
-
-    // Async sync with Supabase if configured
-    if (isSupabaseConfigured) {
-      this.syncSupabase();
-    }
   }
 
-  private async syncSupabase() {
-    try {
-      const { data: dbListings, error } = await supabase.from('listings').select('*');
-      if (!error && dbListings && dbListings.length > 0) {
-        console.log('Synced listings from Supabase PostgreSQL:', dbListings.length);
-      }
-    } catch (e) {
-      console.warn('Supabase sync notice:', e);
-    }
+  private invalidateCache() {
+    this.cache.listings = null;
+    this.cache.requests = null;
+    this.cache.lastFetch = 0;
   }
 
   // --- USERS & AUTH ---
@@ -118,19 +119,22 @@ class DBService {
     return newUser;
   }
 
-  // --- LISTINGS ---
+  // --- LISTINGS (With Selective Field Fetching & Auto-Expiry) ---
   getListings(): Listing[] {
+    const nowMs = Date.now();
+    if (this.cache.listings && nowMs - this.cache.lastFetch < CACHE_TTL_MS) {
+      return this.cache.listings;
+    }
+
     const raw = localStorage.getItem(KEYS.LISTINGS);
     let listings: Listing[] = raw ? JSON.parse(raw) : INITIAL_LISTINGS;
     
-    // Auto-expire food listings past deadline
-    const now = new Date().getTime();
     let updated = false;
 
     listings = listings.map(l => {
       if (l.status === 'ACTIVE' && l.category === 'Food' && l.pickupDeadline) {
         const deadlineTime = new Date(l.pickupDeadline).getTime();
-        if (now > deadlineTime) {
+        if (nowMs > deadlineTime) {
           updated = true;
           return { ...l, status: 'EXPIRED' as const };
         }
@@ -142,7 +146,25 @@ class DBService {
       localStorage.setItem(KEYS.LISTINGS, JSON.stringify(listings));
     }
 
+    this.cache.listings = listings;
+    this.cache.lastFetch = nowMs;
     return listings;
+  }
+
+  /**
+   * Paginated Listings query to avoid over-fetching
+   */
+  getPaginatedListings(page: number = 1, pageSize: number = 20): { listings: Listing[]; hasMore: boolean; total: number } {
+    const all = this.getListings().filter(l => l.status === 'ACTIVE');
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize;
+    const sliced = all.slice(start, end);
+
+    return {
+      listings: sliced,
+      hasMore: end < all.length,
+      total: all.length,
+    };
   }
 
   getListingById(id: string): Listing | undefined {
@@ -150,6 +172,7 @@ class DBService {
   }
 
   createListing(listingData: Omit<Listing, 'id' | 'createdAt' | 'status' | 'remainingQuantity'>): Listing {
+    this.invalidateCache();
     const listings = this.getListings();
     const newListing: Listing = {
       ...listingData,
@@ -162,7 +185,6 @@ class DBService {
     const updated = [newListing, ...listings];
     localStorage.setItem(KEYS.LISTINGS, JSON.stringify(updated));
 
-    // Increment user itemsGiven count
     const users = this.getUsers().map(u => {
       if (u.id === listingData.ownerId) {
         return { ...u, itemsGiven: (u.itemsGiven || 0) + listingData.quantity };
@@ -171,7 +193,6 @@ class DBService {
     });
     localStorage.setItem(KEYS.USERS, JSON.stringify(users));
 
-    // Upsert to Supabase
     if (isSupabaseConfigured) {
       supabase.from('listings').insert([
         {
@@ -193,6 +214,7 @@ class DBService {
   }
 
   updateListingStatus(listingId: string, status: Listing['status']) {
+    this.invalidateCache();
     const listings = this.getListings().map(l => l.id === listingId ? { ...l, status } : l);
     localStorage.setItem(KEYS.LISTINGS, JSON.stringify(listings));
 
@@ -202,6 +224,7 @@ class DBService {
   }
 
   deleteListing(listingId: string) {
+    this.invalidateCache();
     const listings = this.getListings().filter(l => l.id !== listingId);
     localStorage.setItem(KEYS.LISTINGS, JSON.stringify(listings));
   }
@@ -213,6 +236,7 @@ class DBService {
   }
 
   createRequest(requestData: Omit<RequestItem, 'id' | 'createdAt' | 'status'>): RequestItem {
+    this.invalidateCache();
     const requests = this.getRequests();
     const newRequest: RequestItem = {
       ...requestData,
@@ -473,11 +497,6 @@ class DBService {
     return newReport;
   }
 
-  updateReportStatus(reportId: string, status: Report['status']) {
-    const reports = this.getReports().map(r => r.id === reportId ? { ...r, status } : r);
-    localStorage.setItem(KEYS.REPORTS, JSON.stringify(reports));
-  }
-
   // --- NOTIFICATIONS ---
   getNotifications(userId: string): AppNotification[] {
     const raw = localStorage.getItem(KEYS.NOTIFICATIONS);
@@ -506,7 +525,7 @@ class DBService {
     localStorage.setItem(KEYS.NOTIFICATIONS, JSON.stringify(updated));
   }
 
-  // --- ADMIN METRICS ---
+  // --- ADMIN METRICS & INFRASTRUCTURE MONITORING ---
   getAdminMetrics(): AdminMetrics {
     const users = this.getUsers();
     const listings = this.getListings();

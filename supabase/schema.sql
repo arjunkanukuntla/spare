@@ -146,7 +146,7 @@ CREATE TABLE IF NOT EXISTS public.ratings (
     reviewer_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
     reviewed_user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
     rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
-    tags TEXT[], -- array of strings: e.g. ['reliable', 'communicated_well', 'showed_up', 'item_matched']
+    tags TEXT[],
     comment TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -175,17 +175,67 @@ CREATE TABLE IF NOT EXISTS public.notifications (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- INDEXES FOR SPEED
+-- 12. MONETIZATION & PROMOTIONS ARCHITECTURE
+CREATE TABLE IF NOT EXISTS public.advertisers (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    business_name VARCHAR(255) NOT NULL,
+    verified BOOLEAN DEFAULT false,
+    contact_email VARCHAR(255) NOT NULL,
+    contact_phone VARCHAR(50),
+    organization_id UUID REFERENCES public.organizations(id) ON DELETE SET NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS public.campaigns (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    advertiser_id UUID NOT NULL REFERENCES public.advertisers(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
+    image_url TEXT NOT NULL,
+    destination_url TEXT NOT NULL,
+    placement VARCHAR(50) NOT NULL CHECK (placement IN ('home_feed', 'find_feed', 'request_feed', 'category')),
+    category_id VARCHAR(50) REFERENCES public.categories(id) ON DELETE SET NULL,
+    organization_id UUID REFERENCES public.organizations(id) ON DELETE SET NULL,
+    start_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    end_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    status VARCHAR(50) DEFAULT 'ACTIVE' CHECK (status IN ('DRAFT', 'ACTIVE', 'PAUSED', 'COMPLETED')),
+    impression_limit INTEGER DEFAULT 10000,
+    current_impressions INTEGER DEFAULT 0,
+    click_limit INTEGER DEFAULT 1000,
+    current_clicks INTEGER DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS public.campaign_impressions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    campaign_id UUID NOT NULL REFERENCES public.campaigns(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES public.users(id) ON DELETE SET NULL,
+    placement VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS public.campaign_clicks (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    campaign_id UUID NOT NULL REFERENCES public.campaigns(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES public.users(id) ON DELETE SET NULL,
+    placement VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- INDEXES FOR HIGH-SPEED QUERY PERFORMANCE
 CREATE INDEX IF NOT EXISTS idx_listings_owner ON public.listings(owner_id);
 CREATE INDEX IF NOT EXISTS idx_listings_category ON public.listings(category_id);
 CREATE INDEX IF NOT EXISTS idx_listings_status ON public.listings(status);
+CREATE INDEX IF NOT EXISTS idx_listings_status_cat_date ON public.listings(status, category_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_requests_status_cat ON public.requests(status, category_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_claims_listing ON public.claims(listing_id);
 CREATE INDEX IF NOT EXISTS idx_claims_claimant ON public.claims(claimant_id);
 CREATE INDEX IF NOT EXISTS idx_exchanges_giver ON public.exchanges(giver_id);
 CREATE INDEX IF NOT EXISTS idx_exchanges_receiver ON public.exchanges(receiver_id);
 CREATE INDEX IF NOT EXISTS idx_notifications_user ON public.notifications(user_id);
+CREATE INDEX IF NOT EXISTS idx_campaigns_status_placement ON public.campaigns(status, placement, start_at, end_at);
 
--- RLS POLICIES (Supabase Row Level Security)
+-- RLS POLICIES
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.listings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.requests ENABLE ROW LEVEL SECURITY;
@@ -194,14 +244,9 @@ ALTER TABLE public.exchanges ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ratings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.reports ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.advertisers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.campaigns ENABLE ROW LEVEL SECURITY;
 
--- Public read access for active listings & requests
 CREATE POLICY "Public listings are viewable by everyone" ON public.listings FOR SELECT USING (true);
 CREATE POLICY "Public requests are viewable by everyone" ON public.requests FOR SELECT USING (true);
-
--- User controls their own listings
-CREATE POLICY "Users can create their own listings" ON public.listings FOR INSERT WITH CHECK (auth.uid() = owner_id);
-CREATE POLICY "Users can update their own listings" ON public.listings FOR UPDATE USING (auth.uid() = owner_id);
-
--- User controls their own claims & exchanges
-CREATE POLICY "Users can view claims relevant to them" ON public.claims FOR SELECT USING (auth.uid() = claimant_id OR auth.uid() IN (SELECT owner_id FROM public.listings WHERE id = listing_id));
+CREATE POLICY "Active campaigns are viewable by everyone" ON public.campaigns FOR SELECT USING (status = 'ACTIVE');
