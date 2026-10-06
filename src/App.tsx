@@ -3,31 +3,31 @@ import { AppProvider, useApp } from './context/AppContext';
 import { AppShell } from './components/ui/AppShell';
 import { TopBar } from './components/ui/TopBar';
 import { BottomNavigation } from './components/ui/BottomNavigation';
-import { DemoSwitcher } from './components/DemoSwitcher';
-import { DemoTourModal } from './components/DemoTourModal';
-import { OnboardingModal } from './components/OnboardingModal';
-import { GiveFlowModal } from './components/GiveFlowModal';
-import { RequestFlowModal } from './components/RequestFlowModal';
-import { ClaimSheet } from './components/ClaimSheet';
-import { ListingDetailModal } from './components/ListingDetailModal';
+import { DesktopSidebar } from './components/ui/DesktopSidebar';
+import { GiveFlowModal } from './components/modals/GiveFlowModal';
+import { RequestFlowModal } from './components/modals/RequestFlowModal';
+import { ListingDetailModal } from './components/modals/ListingDetailModal';
+import { ClaimModal } from './components/modals/ClaimModal';
+import { ExchangeDetailModal } from './components/modals/ExchangeDetailModal';
+import { RatingModal } from './components/modals/RatingModal';
 import { Listing } from './types';
 
 import { HomePage } from './pages/HomePage';
 import { FindPage } from './pages/FindPage';
 import { ActivityPage } from './pages/ActivityPage';
 import { ProfilePage } from './pages/ProfilePage';
-
-// Additional Polish / Auxiliary Tool Views
-import { MatchPage } from './pages/MatchPage';
-import { EventModePage } from './pages/EventModePage';
-import { DashboardsPage } from './pages/DashboardsPage';
-import { ImpactPage } from './pages/ImpactPage';
+import { CampusJoinPage } from './pages/CampusJoinPage';
 import { AdminPage } from './pages/AdminPage';
 
-const AppContent: React.FC = () => {
-  const { activeTab, setActiveTab } = useApp();
-  
-  // Modal & Sheet state
+const MainAppContent: React.FC = () => {
+  const { 
+    activeTab, 
+    activeExchangeForModal, 
+    setActiveExchangeForModal, 
+    activeRatingExchange, 
+    setActiveRatingExchange 
+  } = useApp();
+
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
   const [claimListing, setClaimListing] = useState<Listing | null>(null);
 
@@ -39,78 +39,70 @@ const AppContent: React.FC = () => {
   const renderActivePage = () => {
     switch (activeTab) {
       case 'home':
-        return <HomePage onSelectListing={setSelectedListing} />;
-      case 'explore':
-        return <FindPage onSelectListing={setSelectedListing} />;
+        return <HomePage onSelectListing={setSelectedListing} onClaimListing={handleOpenClaim} />;
+      case 'find':
+        return <FindPage onSelectListing={setSelectedListing} onClaimListing={handleOpenClaim} />;
       case 'activity':
         return <ActivityPage />;
       case 'profile':
         return <ProfilePage />;
-      
-      // Secondary Operational Tool Screens
-      case 'match':
-        return <MatchPage />;
-      case 'event':
-        return <EventModePage />;
-      case 'dashboards':
-        return <DashboardsPage />;
-      case 'impact':
-        return <ImpactPage />;
+      case 'join':
+        return <CampusJoinPage />;
       case 'admin':
         return <AdminPage />;
       default:
-        return <HomePage onSelectListing={setSelectedListing} />;
+        return <HomePage onSelectListing={setSelectedListing} onClaimListing={handleOpenClaim} />;
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-start">
-      
-      {/* Interactive Role Switcher Banner */}
-      <DemoSwitcher />
+    <AppShell>
+      {/* Top Bar with Brand, Campus Pill, & Profile */}
+      <TopBar />
 
-      {/* Mobile-First Shell Container */}
-      <AppShell>
-        
-        {/* Top Header Bar with Location Picker */}
-        <TopBar onOpenProfile={() => setActiveTab('profile')} />
-
-        {/* Dynamic Page Views */}
-        <main className="flex-1 pb-20 overflow-x-hidden">
+      {/* Main Responsive Body Layout (Desktop Sidebar + Main Content) */}
+      <div className="flex flex-1 w-full max-w-7xl mx-auto">
+        <DesktopSidebar />
+        <main className="flex-1 pb-20 sm:pb-8 min-w-0">
           {renderActivePage()}
         </main>
+      </div>
 
-        {/* 4 Bottom Navigation Tabs */}
-        <BottomNavigation />
-      </AppShell>
+      {/* Mobile Bottom Navigation Bar */}
+      <BottomNavigation />
 
-      {/* Global Modals & Progressive Creation Sheets */}
-      <DemoTourModal />
-      <OnboardingModal />
+      {/* Global Action Modals */}
       <GiveFlowModal />
       <RequestFlowModal />
 
-      {/* Listing Detail & Claim Sheets */}
       <ListingDetailModal
         listing={selectedListing}
         onClose={() => setSelectedListing(null)}
         onClaim={handleOpenClaim}
       />
 
-      <ClaimSheet
+      <ClaimModal
         listing={claimListing}
-        isOpen={Boolean(claimListing)}
         onClose={() => setClaimListing(null)}
       />
 
-    </div>
+      <ExchangeDetailModal
+        exchange={activeExchangeForModal}
+        onClose={() => setActiveExchangeForModal(null)}
+      />
+
+      <RatingModal
+        exchange={activeRatingExchange}
+        onClose={() => setActiveRatingExchange(null)}
+      />
+    </AppShell>
   );
 };
 
 export function App() {
   return (
     <AppProvider>
-      <AppContent />
+      <MainAppContent />
     </AppProvider>
   );
 }

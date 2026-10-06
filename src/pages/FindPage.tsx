@@ -2,164 +2,152 @@ import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { Listing, ListingCategory } from '../types';
 import { ListingCard } from '../components/ui/ListingCard';
-import { CategoryChip } from '../components/ui/CategoryChip';
-import { Search, MapPin, List } from 'lucide-react';
+import { Search, Filter, Sparkles } from 'lucide-react';
 
 interface FindPageProps {
-  onSelectListing?: (listing: Listing) => void;
+  onSelectListing: (listing: Listing) => void;
+  onClaimListing: (listing: Listing) => void;
 }
 
-export const FindPage: React.FC<FindPageProps> = ({ onSelectListing }) => {
-  const { listings, searchQuery, setSearchQuery, selectedCategory, setSelectedCategory } = useApp();
+const CATEGORIES: (ListingCategory | 'All')[] = [
+  'All', 'Electronics', 'Books', 'College', 'DIY & Tools', 'Food', 'Clothing', 'Household', 'Accessories', 'Other'
+];
 
-  const [viewMode, setViewMode] = useState<'LIST' | 'MAP'>('LIST');
-  const [radiusKm, setRadiusKm] = useState<number>(5);
-  const [claimListing, setClaimListing] = useState<Listing | null>(null);
+const CONDITIONS = ['All', 'New', 'Like new', 'Good', 'Used', 'Needs repair'];
 
-  const categories: { label: ListingCategory | 'All'; emoji: string }[] = [
-    { label: 'All', emoji: '🌟' },
-    { label: 'College', emoji: '🎓' },
-    { label: 'Books', emoji: '📚' },
-    { label: 'Food', emoji: '🍛' },
-    { label: 'Electronics', emoji: '📱' },
-    { label: 'Clothes', emoji: '👕' },
-    { label: 'Furniture', emoji: '🪑' },
-    { label: 'Household', emoji: '🏠' },
-    { label: 'Other', emoji: '📦' },
-  ];
+export const FindPage: React.FC<FindPageProps> = ({ onSelectListing, onClaimListing }) => {
+  const { 
+    listings, 
+    searchQuery, 
+    setSearchQuery, 
+    selectedCategory, 
+    setSelectedCategory,
+    selectedCondition,
+    setSelectedCondition,
+    organization
+  } = useApp();
 
-  const filteredListings = listings.filter((item) => {
-    const matchesCategory = selectedCategory === 'All' || item.category === selectedCategory;
-    const matchesRadius = item.distanceKm <= radiusKm;
-    const matchesSearch = 
-      item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.category.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesRadius && matchesSearch;
+  const activeListings = listings.filter(l => l.status === 'ACTIVE');
+
+  // Filter listings by searchQuery, category, condition
+  const filteredListings = activeListings.filter((l) => {
+    // Category filter
+    if (selectedCategory !== 'All' && l.category !== selectedCategory) {
+      return false;
+    }
+    // Condition filter
+    if (selectedCondition !== 'All' && l.condition !== selectedCondition) {
+      return false;
+    }
+    // Search query filter
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const matchTitle = l.title.toLowerCase().includes(q);
+      const matchDesc = l.description.toLowerCase().includes(q);
+      const matchCategory = l.category.toLowerCase().includes(q);
+      const matchLoc = l.approximateLocation.toLowerCase().includes(q);
+      return matchTitle || matchDesc || matchCategory || matchLoc;
+    }
+    return true;
   });
 
   return (
-    <div className="space-y-4 px-4 py-4 pb-24 overflow-x-hidden">
+    <div className="max-w-7xl mx-auto px-4 lg:px-8 py-6 space-y-6 animate-in fade-in duration-200">
       
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-black text-slate-900 tracking-tight">Find nearby</h1>
-        
-        {/* View Toggle */}
-        <div className="bg-slate-200 p-0.5 rounded-xl flex items-center gap-0.5">
-          <button
-            onClick={() => setViewMode('LIST')}
-            className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 ${
-              viewMode === 'LIST' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600'
-            }`}
-          >
-            <List className="w-3.5 h-3.5" /> List
-          </button>
-          <button
-            onClick={() => setViewMode('MAP')}
-            className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 ${
-              viewMode === 'MAP' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600'
-            }`}
-          >
-            <MapPin className="w-3.5 h-3.5" /> Map
-          </button>
+      {/* Search Header */}
+      <div className="space-y-3">
+        <h1 className="text-2xl font-extrabold text-stone-900">Find Items</h1>
+        <p className="text-xs text-stone-500">
+          Discover surplus items available for free pickup near {organization.name}
+        </p>
+
+        {/* Search Field */}
+        <div className="relative">
+          <Search className="w-5 h-5 text-stone-400 absolute left-4 top-3.5" />
+          <input
+            type="text"
+            placeholder="Search by keyword, category, or location..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-12 pr-4 py-3 bg-white border border-stone-200 rounded-2xl text-stone-900 text-sm shadow-xs focus:border-emerald-600 focus:outline-none transition-all"
+          />
         </div>
       </div>
 
-      {/* Search Input */}
-      <div className="relative">
-        <Search className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search for something you need..."
-          className="w-full bg-white border border-slate-200 rounded-2xl pl-10 pr-4 py-2.5 text-xs font-medium text-slate-900 focus:outline-none focus:border-emerald-500 shadow-spare-card"
-        />
-      </div>
-
-      {/* Radius Filter Pills */}
-      <div className="flex items-center gap-2 text-xs">
-        <span className="font-bold text-slate-500">Radius:</span>
-        {[1, 3, 5, 10].map((r) => (
-          <button
-            key={r}
-            onClick={() => setRadiusKm(r)}
-            className={`px-2.5 py-1 rounded-lg font-bold transition ${
-              radiusKm === r ? 'bg-emerald-600 text-white' : 'bg-white text-slate-600 border border-slate-200'
-            }`}
-          >
-            {r} km
-          </button>
-        ))}
-      </div>
-
-      {/* Category Chips */}
-      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
-        {categories.map((cat) => (
-          <CategoryChip
-            key={cat.label}
-            label={cat.label}
-            emoji={cat.emoji}
-            selected={selectedCategory === cat.label}
-            onClick={() => setSelectedCategory(cat.label)}
-          />
-        ))}
-      </div>
-
-      {/* Content */}
-      {viewMode === 'LIST' ? (
-        <div className="grid grid-cols-2 gap-3 pt-1">
-          {filteredListings.map((listing) => (
-            <ListingCard
-              key={listing.id}
-              listing={listing}
-              onSelect={(item) => onSelectListing?.(item)}
-              onClaimQuick={(item) => setClaimListing(item)}
-            />
+      {/* Category Filter Chips */}
+      <div className="space-y-2">
+        <span className="text-[11px] font-bold text-stone-400 uppercase tracking-wider">Category</span>
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setSelectedCategory(cat)}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+                selectedCategory === cat
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'bg-white border border-stone-200 text-stone-700 hover:bg-stone-50'
+              }`}
+            >
+              {cat}
+            </button>
           ))}
         </div>
-      ) : (
-        /* Map View Canvas */
-        <div className="relative w-full h-[420px] bg-slate-900 rounded-3xl overflow-hidden border border-slate-800 shadow-lg">
-          <div className="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:24px_24px] opacity-70" />
-          
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 border border-dashed border-emerald-500/40 rounded-full pointer-events-none animate-pulse flex items-center justify-center">
-            <span className="text-[10px] font-mono font-bold text-emerald-400 bg-slate-900/90 px-2 py-0.5 rounded-full">
-              {radiusKm} km radius
-            </span>
-          </div>
+      </div>
 
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex flex-col items-center pointer-events-none">
-            <div className="w-4 h-4 bg-emerald-500 rounded-full ring-4 ring-emerald-500/30" />
-          </div>
+      {/* Condition Filter Options */}
+      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pt-1">
+        <span className="text-[11px] font-bold text-stone-400 shrink-0">Condition:</span>
+        {CONDITIONS.map((cond) => (
+          <button
+            key={cond}
+            onClick={() => setSelectedCondition(cond)}
+            className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
+              selectedCondition === cond
+                ? 'bg-stone-900 text-white font-bold'
+                : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+            }`}
+          >
+            {cond}
+          </button>
+        ))}
+      </div>
 
-          {filteredListings.map((l, i) => {
-            const offsets = [
-              { top: '32%', left: '42%' },
-              { top: '58%', left: '35%' },
-              { top: '28%', left: '62%' },
-              { top: '65%', left: '60%' },
-              { top: '45%', left: '25%' },
-            ];
-            const pos = offsets[i % offsets.length];
-
-            return (
-              <button
-                key={l.id}
-                onClick={() => onSelectListing?.(l)}
-                style={{ top: pos.top, left: pos.left }}
-                className="absolute z-30 transform -translate-x-1/2 -translate-y-1/2 transition-transform hover:scale-125"
-              >
-                <div className="bg-slate-900 border border-emerald-500 text-white font-bold text-[10px] px-2 py-1 rounded-xl shadow-lg flex items-center gap-1">
-                  <span>{l.category === 'Food' ? '🍛' : '📦'}</span>
-                  <span>{l.distanceKm}km</span>
-                </div>
-              </button>
-            );
-          })}
+      {/* Results Count & Grid */}
+      <div className="pt-2">
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-xs font-bold text-stone-600">
+            Showing {filteredListings.length} {filteredListings.length === 1 ? 'item' : 'items'}
+          </p>
         </div>
-      )}
+
+        {filteredListings.length === 0 ? (
+          <div className="p-12 text-center bg-white rounded-3xl border border-stone-200">
+            <p className="font-bold text-stone-800 text-base">No items found matching your filters.</p>
+            <p className="text-xs text-stone-500 mt-1">Try resetting filters or search for another item.</p>
+            <button
+              onClick={() => {
+                setSearchQuery('');
+                setSelectedCategory('All');
+                setSelectedCondition('All');
+              }}
+              className="mt-4 px-4 py-2 bg-stone-900 hover:bg-black text-white text-xs font-bold rounded-xl"
+            >
+              Reset Filters
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {filteredListings.map(listing => (
+              <ListingCard
+                key={listing.id}
+                listing={listing}
+                onSelect={onSelectListing}
+                onClaim={onClaimListing}
+              />
+            ))}
+          </div>
+        )}
+      </div>
 
     </div>
   );

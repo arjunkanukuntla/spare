@@ -1,187 +1,248 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { Listing, ListingCategory } from '../types';
+import { Listing, RequestItem } from '../types';
 import { ListingCard } from '../components/ui/ListingCard';
 import { RequestCard } from '../components/ui/RequestCard';
-import { CategoryChip } from '../components/ui/CategoryChip';
-import { EmptyState } from '../components/ui/EmptyState';
-import { 
-  Search, 
-  PlusCircle, 
-  HeartHandshake, 
-  Clock,
-  ArrowRight
-} from 'lucide-react';
+import { MatchingEngine } from '../services/matchingEngine';
+import { Search, PlusCircle, ArrowRight, Clock, Sparkles, MapPin, Zap, ShieldCheck } from 'lucide-react';
 
 interface HomePageProps {
-  onSelectListing?: (listing: Listing) => void;
+  onSelectListing: (listing: Listing) => void;
+  onClaimListing: (listing: Listing) => void;
 }
 
-export const HomePage: React.FC<HomePageProps> = ({ onSelectListing }) => {
+const SEARCH_SUGGESTIONS = [
+  'Scientific Calculator',
+  'Laptop Charger',
+  'Engineering Maths Book',
+  'Digital Multimeter',
+  'Arduino Board',
+  'Lab Coat',
+  'Event Meals'
+];
+
+export const HomePage: React.FC<HomePageProps> = ({ onSelectListing, onClaimListing }) => {
   const { 
     listings, 
     requests, 
+    organization, 
     searchQuery, 
     setSearchQuery, 
-    selectedCategory, 
-    setSelectedCategory,
-    setGiveModalOpen,
-    setRequestModalOpen,
-    setActiveTab
+    setActiveTab, 
+    setGiveModalOpen, 
+    setRequestModalOpen 
   } = useApp();
 
-  const [claimListing, setClaimListing] = useState<Listing | null>(null);
+  const activeListings = listings.filter(l => l.status === 'ACTIVE');
+  const openRequests = requests.filter(r => r.status === 'OPEN');
+  
+  // Filter food listings expiring soon
+  const expiringFoodListings = activeListings.filter(l => l.category === 'Food' && l.pickupDeadline);
 
-  const categories: { label: ListingCategory | 'All'; emoji: string }[] = [
-    { label: 'All', emoji: '🌟' },
-    { label: 'College', emoji: '🎓' },
-    { label: 'Books', emoji: '📚' },
-    { label: 'Food', emoji: '🍛' },
-    { label: 'Electronics', emoji: '📱' },
-    { label: 'Clothes', emoji: '👕' },
-    { label: 'Furniture', emoji: '🪑' },
-    { label: 'Household', emoji: '🏠' },
-    { label: 'Other', emoji: '📦' },
-  ];
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      setActiveTab('find');
+    }
+  };
 
-  // Filter listings
-  const filteredListings = listings.filter((item) => {
-    const matchesCategory = selectedCategory === 'All' || item.category === selectedCategory;
-    const matchesSearch = 
-      item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.location.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
-
-  const freeListings = filteredListings.filter(l => l.distributionType === 'FREE');
-  const expiringListings = listings.filter(
-    (l) => l.category === 'Food' && l.remainingQuantity > 0 && l.status === 'ACTIVE'
-  ).slice(0, 4);
+  const handleSuggestionClick = (query: string) => {
+    setSearchQuery(query);
+    setActiveTab('find');
+  };
 
   return (
-    <div className="space-y-5 px-4 py-4 pb-24 overflow-x-hidden">
+    <div className="space-y-8 pb-12 animate-in fade-in duration-200">
       
-      {/* Search Input Bar */}
-      <div className="relative">
-        <Search className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="What do you need?"
-          className="w-full bg-white border border-slate-200/90 rounded-2xl pl-10 pr-4 py-2.5 text-xs font-medium text-slate-900 focus:outline-none focus:border-emerald-500 shadow-spare-card"
-        />
-      </div>
-
-      {/* Two Clear Quick Action CTAs */}
-      <div className="grid grid-cols-2 gap-2.5">
-        <button
-          onClick={() => setGiveModalOpen(true)}
-          className="flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-extrabold text-xs py-3 px-4 rounded-2xl shadow-sm transition"
-        >
-          <PlusCircle className="w-4 h-4" />
-          <span>Give something</span>
-        </button>
-
-        <button
-          onClick={() => setRequestModalOpen(true)}
-          className="flex items-center justify-center gap-1.5 bg-slate-900 hover:bg-slate-800 active:scale-95 text-white font-extrabold text-xs py-3 px-4 rounded-2xl shadow-sm transition"
-        >
-          <HeartHandshake className="w-4 h-4 text-emerald-400" />
-          <span>Request something</span>
-        </button>
-      </div>
-
-      {/* Horizontal Category Chips */}
-      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
-        {categories.map((cat) => (
-          <CategoryChip
-            key={cat.label}
-            label={cat.label}
-            emoji={cat.emoji}
-            selected={selectedCategory === cat.label}
-            onClick={() => setSelectedCategory(cat.label)}
-          />
-        ))}
-      </div>
-
-      {/* SECTION 1: Free near you */}
-      <section className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-extrabold text-slate-900">Free near you</h2>
-          <span className="text-[11px] font-semibold text-slate-500">
-            {freeListings.length} available
-          </span>
-        </div>
-
-        {freeListings.length > 0 ? (
-          <div className="grid grid-cols-2 gap-3">
-            {freeListings.map((listing) => (
-              <ListingCard
-                key={listing.id}
-                listing={listing}
-                onSelect={(item) => onSelectListing?.(item)}
-                onClaimQuick={(item) => setClaimListing(item)}
-              />
-            ))}
-          </div>
-        ) : (
-          <EmptyState
-            title="Nothing nearby yet"
-            message="Check back later or post a request asking the community."
-            actionText="Request something"
-            onAction={() => setRequestModalOpen(true)}
-          />
-        )}
-      </section>
-
-      {/* SECTION 2: Expiring soon (Food surplus countdown) */}
-      {expiringListings.length > 0 && (
-        <section className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-extrabold text-slate-900 flex items-center gap-1.5">
-              <Clock className="w-4 h-4 text-amber-500" /> Expiring soon
-            </h2>
+      {/* Search & Hero Banner Section */}
+      <section className="bg-gradient-to-b from-emerald-50/60 via-stone-50 to-stone-50 px-4 pt-6 pb-4 border-b border-stone-200/60">
+        <div className="max-w-4xl mx-auto space-y-4">
+          
+          <div className="text-center sm:text-left">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white text-emerald-800 rounded-full border border-emerald-200 text-xs font-semibold shadow-xs mb-2">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <span>SPARE at {organization.name}</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-stone-900 tracking-tight">
+              What do you need today?
+            </h1>
+            <p className="text-xs sm:text-sm text-stone-600 mt-1 max-w-xl">
+              Gifting surplus calculators, chargers, books, lab gear, & food directly within campus. 100% free permanent transfer.
+            </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            {expiringListings.map((listing) => (
-              <ListingCard
-                key={listing.id}
-                listing={listing}
-                onSelect={(item) => onSelectListing?.(item)}
-                onClaimQuick={(item) => setClaimListing(item)}
-              />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* SECTION 3: Requests nearby */}
-      {requests.length > 0 && (
-        <section className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-extrabold text-slate-900 flex items-center gap-1.5">
-              <HeartHandshake className="w-4 h-4 text-emerald-600" /> Requests nearby
-            </h2>
-            <button 
-              onClick={() => setActiveTab('explore')}
-              className="text-[11px] font-bold text-emerald-600 hover:underline flex items-center gap-0.5"
+          {/* Search Input Box */}
+          <form onSubmit={handleSearchSubmit} className="relative">
+            <Search className="w-5 h-5 text-stone-400 absolute left-4 top-3.5" />
+            <input
+              type="text"
+              placeholder="Search for something you need (calculator, charger, books)..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-12 pr-28 py-3.5 bg-white border border-stone-300/90 rounded-2xl text-stone-900 text-sm shadow-sm focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 focus:outline-none transition-all"
+            />
+            <button
+              type="submit"
+              className="absolute right-2 top-2 bottom-2 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all"
             >
-              <span>Explore map</span> <ArrowRight className="w-3 h-3" />
+              Search
+            </button>
+          </form>
+
+          {/* Search Suggestion Chips */}
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-1">
+            <span className="text-[11px] font-bold text-stone-400 shrink-0">Try:</span>
+            {SEARCH_SUGGESTIONS.map((term) => (
+              <button
+                key={term}
+                onClick={() => handleSuggestionClick(term)}
+                className="px-2.5 py-1 bg-white hover:bg-emerald-50 text-stone-700 hover:text-emerald-800 text-xs font-medium rounded-lg border border-stone-200 shrink-0 transition-colors"
+              >
+                {term}
+              </button>
+            ))}
+          </div>
+
+          {/* Primary Action Buttons: Give & Request */}
+          <div className="grid grid-cols-2 gap-3 pt-2">
+            <button
+              onClick={() => setGiveModalOpen(true)}
+              className="p-4 bg-gradient-to-br from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white rounded-2xl shadow-sm text-left flex flex-col justify-between group active:scale-[0.98] transition-all"
+            >
+              <div className="flex items-center justify-between w-full">
+                <span className="text-xl">🎁</span>
+                <PlusCircle className="w-5 h-5 stroke-[2.2] group-hover:rotate-90 transition-transform" />
+              </div>
+              <div className="mt-3">
+                <h3 className="font-bold text-sm">Give something</h3>
+                <p className="text-[11px] text-emerald-100 leading-tight mt-0.5">
+                  I don't need this anymore
+                </p>
+              </div>
+            </button>
+
+            <button
+              onClick={() => setRequestModalOpen(true)}
+              className="p-4 bg-white hover:bg-stone-50 text-stone-900 border border-stone-200 rounded-2xl shadow-sm text-left flex flex-col justify-between group active:scale-[0.98] transition-all"
+            >
+              <div className="flex items-center justify-between w-full">
+                <span className="text-xl">🙋‍♂️</span>
+                <ArrowRight className="w-5 h-5 text-stone-400 group-hover:translate-x-1 transition-transform" />
+              </div>
+              <div className="mt-3">
+                <h3 className="font-bold text-sm">Request something</h3>
+                <p className="text-[11px] text-stone-500 leading-tight mt-0.5">
+                  I've been looking for this
+                </p>
+              </div>
             </button>
           </div>
 
-          <div className="space-y-2.5">
-            {requests.map((req) => (
-              <RequestCard key={req.id} request={req} />
-            ))}
-          </div>
-        </section>
-      )}
+        </div>
+      </section>
 
+      {/* Main Content Sections Container */}
+      <div className="max-w-7xl mx-auto px-4 lg:px-8 space-y-10">
+        
+        {/* Section 1: Expiring Soon (Food items) */}
+        {expiringFoodListings.length > 0 && (
+          <section className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-amber-100 text-amber-800 rounded-lg">
+                  <Clock className="w-4 h-4" />
+                </div>
+                <div>
+                  <h2 className="font-bold text-stone-900 text-base">Expiring Soon (Food Surplus)</h2>
+                  <p className="text-xs text-stone-500">Pick up time-sensitive event & canteen food before deadline</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {expiringFoodListings.map(listing => (
+                <ListingCard
+                  key={listing.id}
+                  listing={listing}
+                  onSelect={onSelectListing}
+                  onClaim={onClaimListing}
+                />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Section 2: Available Near You */}
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="font-bold text-stone-900 text-lg">Available near you</h2>
+              <p className="text-xs text-stone-500">Items posted by students & departments near {organization.name}</p>
+            </div>
+            <button
+              onClick={() => setActiveTab('find')}
+              className="text-xs font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-1"
+            >
+              <span>View all</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          {activeListings.length === 0 ? (
+            <div className="p-10 text-center bg-white rounded-3xl border border-stone-200">
+              <p className="font-bold text-stone-700 text-sm">Nothing nearby yet.</p>
+              <p className="text-xs text-stone-500 mt-1">
+                Be the first to put something useful back into circulation.
+              </p>
+              <button
+                onClick={() => setGiveModalOpen(true)}
+                className="mt-4 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs"
+              >
+                Give Something Now
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {activeListings.slice(0, 8).map(listing => (
+                <ListingCard
+                  key={listing.id}
+                  listing={listing}
+                  onSelect={onSelectListing}
+                  onClaim={onClaimListing}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* Section 3: People are looking for */}
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="font-bold text-stone-900 text-lg">People are looking for</h2>
+              <p className="text-xs text-stone-500">Campus requests waiting for a match</p>
+            </div>
+          </div>
+
+          {openRequests.length === 0 ? (
+            <div className="p-8 text-center bg-white rounded-3xl border border-stone-200">
+              <p className="font-bold text-stone-700 text-sm">No requests open right now.</p>
+              <p className="text-xs text-stone-500 mt-1">You can create a request if you need something!</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {openRequests.map(req => (
+                <RequestCard
+                  key={req.id}
+                  request={req}
+                  onRespond={() => setGiveModalOpen(true)}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+
+      </div>
     </div>
   );
 };

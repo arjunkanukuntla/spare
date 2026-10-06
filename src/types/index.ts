@@ -1,47 +1,62 @@
 export type UserRole = 'INDIVIDUAL' | 'BUSINESS' | 'ORGANIZATION' | 'ADMIN';
 
 export type ListingCategory = 
-  | 'Food' 
+  | 'Electronics' 
   | 'Books' 
   | 'College' 
-  | 'Electronics' 
-  | 'Clothes' 
-  | 'Furniture' 
+  | 'DIY & Tools' 
+  | 'Clothing' 
   | 'Household' 
+  | 'Food' 
+  | 'Accessories' 
   | 'Other';
 
-export type DistributionType = 'FREE' | 'SURPLUS_SALE';
+export type ListingCondition = 'New' | 'Like new' | 'Good' | 'Used' | 'Needs repair';
 
 export type ListingStatus = 
   | 'DRAFT' 
   | 'ACTIVE' 
-  | 'PARTIALLY_CLAIMED' 
-  | 'FULLY_CLAIMED' 
-  | 'RESERVED' 
-  | 'PICKED_UP' 
+  | 'CLAIMED' 
+  | 'ACCEPTED' 
   | 'COMPLETED' 
-  | 'EXPIRED' 
-  | 'CANCELLED';
+  | 'CANCELLED' 
+  | 'EXPIRED';
 
-export type UrgencyLevel = 'LOW' | 'NORMAL' | 'URGENT' | 'EMERGENCY';
+export type UrgencyLevel = 'Whenever' | 'Soon' | 'Today';
 
-export type ClaimStatus = 'CLAIMED' | 'PICKUP_PENDING' | 'PICKED_UP' | 'COMPLETED' | 'EXPIRED';
+export type ClaimStatus = 'pending' | 'accepted' | 'declined' | 'cancelled';
 
-export type DeliveryStatus = 'REQUESTED' | 'ASSIGNED' | 'IN_TRANSIT' | 'DELIVERED';
+export type ExchangeStatus = 'accepted' | 'pickup_pending' | 'completed' | 'cancelled';
+
+export type OrganizationType = 'university' | 'college' | 'office' | 'community' | 'apartment' | 'other';
+
+export interface Organization {
+  id: string;
+  name: string;
+  type: OrganizationType;
+  location: string;
+  verified: boolean;
+}
 
 export interface User {
   id: string;
   name: string;
-  emailPhone: string;
+  email: string;
+  phone?: string;
   avatar: string;
   role: UserRole;
-  location: string;
-  reputation: number; // e.g. 4.9
-  isVerified: boolean;
-  verificationBadgeText?: string;
+  organizationId?: string;
+  orgName?: string;
+  campusName?: string;
+  department?: string;
+  year?: string;
+  section?: string;
+  approximateLocation: string;
+  reliabilityRating: number; // e.g. 4.95
+  completedExchanges: number;
   itemsGiven: number;
   itemsClaimed: number;
-  successRate: number; // e.g. 96
+  isVerified: boolean;
   createdAt: string;
   bio?: string;
 }
@@ -58,31 +73,28 @@ export interface FoodDetails {
 
 export interface Listing {
   id: string;
-  providerId: string;
-  providerName: string;
-  providerAvatar: string;
-  providerRole: UserRole;
-  isVerifiedProvider: boolean;
+  ownerId: string;
+  ownerName: string;
+  ownerAvatar: string;
+  ownerRole?: UserRole;
+  ownerReliability?: number;
+  isVerifiedOwner?: boolean;
   category: ListingCategory;
   title: string;
   description: string;
   quantity: number;
   remainingQuantity: number;
-  unit: string; // e.g. "meals", "items", "books", "chairs"
-  condition?: 'New' | 'Like New' | 'Good' | 'Fair';
-  price: number; // 0 for FREE
-  originalPrice?: number; // For optional surplus sale comparison
-  distributionType: DistributionType;
-  location: string;
+  unit: string; // e.g. "items", "books", "meals", "chargers"
+  condition: ListingCondition;
+  approximateLocation: string;
+  pickupArea: string; // e.g. "Near CSE Block Lobby"
   distanceKm: number;
-  coordinates: { lat: number; lng: number };
-  availableFrom: string;
-  pickupDeadline: string; // ISO String or display time
-  pickupDeadlineTime: string; // e.g. "9:30 PM"
   status: ListingStatus;
   images: string[];
   foodDetails?: FoodDetails;
+  pickupDeadline?: string; // ISO string or human formatted
   createdAt: string;
+  expiresAt?: string;
 }
 
 export interface RequestItem {
@@ -90,8 +102,6 @@ export interface RequestItem {
   requesterId: string;
   requesterName: string;
   requesterAvatar: string;
-  requesterRole: UserRole;
-  isVerifiedRequester: boolean;
   category: ListingCategory;
   title: string;
   description: string;
@@ -99,12 +109,10 @@ export interface RequestItem {
   unit: string;
   location: string;
   distanceKm: number;
-  coordinates: { lat: number; lng: number };
-  radiusKm: number;
-  deadline: string;
   urgency: UrgencyLevel;
   status: 'OPEN' | 'MATCHED' | 'FULFILLED' | 'EXPIRED';
   createdAt: string;
+  expiresAt?: string;
 }
 
 export interface Claim {
@@ -113,83 +121,85 @@ export interface Claim {
   listingTitle: string;
   listingCategory: ListingCategory;
   listingImage: string;
-  providerId: string;
-  providerName: string;
+  ownerId: string;
+  ownerName: string;
   claimantId: string;
   claimantName: string;
-  quantity: number;
-  unit: string;
-  pickupMethod: 'SELF_PICKUP' | 'DELIVERY';
-  deliveryFee: number;
-  deliveryId?: string;
+  claimantAvatar: string;
+  message?: string;
   status: ClaimStatus;
-  otpCode: string; // 4-digit code
   createdAt: string;
-  pickupLocation: string;
+  updatedAt: string;
 }
 
-export interface Delivery {
+export interface Exchange {
   id: string;
+  listingId: string;
+  listingTitle: string;
+  listingCategory: ListingCategory;
+  listingImage: string;
   claimId: string;
-  driverName: string;
-  driverPhone: string;
-  vehicleNumber: string;
-  fee: number;
-  status: DeliveryStatus;
-  pickupTime?: string;
-  estimatedDeliveryTime?: string;
-  liveLat?: number;
-  liveLng?: number;
+  giverId: string;
+  giverName: string;
+  giverAvatar: string;
+  receiverId: string;
+  receiverName: string;
+  receiverAvatar: string;
+  status: ExchangeStatus;
+  pickupArea: string;
+  scheduledAt?: string;
+  giverConfirmed: boolean;
+  receiverConfirmed: boolean;
+  completedAt?: string;
+  cancelledAt?: string;
+  createdAt: string;
 }
 
-export interface ChatMessage {
+export interface Rating {
   id: string;
-  claimId: string;
-  senderId: string;
-  senderName: string;
-  text: string;
-  timestamp: string;
+  exchangeId: string;
+  reviewerId: string;
+  reviewedUserId: string;
+  rating: number; // 1-5
+  tags: string[]; // ['reliable', 'communicated_well', 'showed_up', 'item_matched']
+  comment?: string;
+  createdAt: string;
 }
 
 export interface AppNotification {
   id: string;
   userId: string;
-  type: 'MATCH' | 'CLAIM' | 'EXPIRING' | 'DELIVERY' | 'SYSTEM';
+  type: 'CLAIM_RECEIVED' | 'CLAIM_ACCEPTED' | 'CLAIM_DECLINED' | 'EXCHANGE_COMPLETED' | 'REQUEST_MATCH' | 'EXPIRING_SOON' | 'SYSTEM';
   title: string;
-  message: string;
+  body: string;
   time: string;
   read: boolean;
+  linkId?: string;
 }
 
 export interface Report {
   id: string;
   reporterId: string;
   reporterName: string;
-  listingId: string;
-  listingTitle: string;
+  targetType: 'listing' | 'user' | 'claim';
+  targetId: string;
+  targetTitle?: string;
   reason: string;
-  details: string;
-  status: 'PENDING' | 'REVIEWED' | 'DISMISSED' | 'ACTION_TAKEN';
+  description: string;
+  status: 'pending' | 'reviewed' | 'action_taken' | 'dismissed';
   createdAt: string;
 }
 
-export interface DemoPersona {
-  id: string;
-  name: string;
-  role: UserRole;
-  roleTitle: string;
-  avatar: string;
-  bio: string;
-  location: string;
-  demoBadge: string;
-  keyActionDescription: string;
-}
-
-export interface ImpactMetrics {
-  mealsRedistributed: number;
-  itemsReused: number;
-  peopleHelped: number;
-  valueRescuedInr: number;
-  avgTimeToClaimMins: number;
-  successRatePercent: number;
+export interface AdminMetrics {
+  totalUsers: number;
+  activeUsers: number;
+  totalListings: number;
+  activeListings: number;
+  totalRequests: number;
+  openRequests: number;
+  totalClaims: number;
+  completedExchanges: number;
+  cancelledExchanges: number;
+  reportsCount: number;
+  categoryDistribution: Record<string, number>;
 }

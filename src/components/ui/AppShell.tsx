@@ -6,10 +6,8 @@ interface AppShellProps {
 
 export const AppShell: React.FC<AppShellProps> = ({ children }) => {
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-start overflow-x-hidden">
-      <div className="spare-app-shell flex flex-col min-h-screen relative text-slate-900">
-        {children}
-      </div>
+    <div className="w-full min-h-screen bg-stone-50 text-stone-900 font-sans flex flex-col antialiased selection:bg-emerald-100 selection:text-emerald-800">
+      {children}
     </div>
   );
 };

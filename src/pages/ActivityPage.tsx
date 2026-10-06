@@ -1,262 +1,289 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { Claim } from '../types';
-import { OTPVerificationModal } from '../components/OTPVerificationModal';
-import { ChatModal } from '../components/ChatModal';
-import { EmptyState } from '../components/ui/EmptyState';
-import { 
-  Activity, 
-  MessageSquare,
-  KeyRound,
-  CheckCircle2,
-  Clock,
-  MapPin,
-  Sparkles,
-  Package,
-  HelpCircle
-} from 'lucide-react';
+import { Claim, Exchange, Listing } from '../types';
+import { Check, X, Clock, MapPin, CheckCircle, AlertCircle, ArrowRight, Activity, ShieldCheck } from 'lucide-react';
 
 export const ActivityPage: React.FC = () => {
-  const { claims, listings, requests, currentUser, setGiveModalOpen, setRequestModalOpen } = useApp();
-  const [tab, setTab] = useState<'CLAIMS' | 'GIVES' | 'REQUESTS'>('CLAIMS');
+  const { 
+    currentUser, 
+    claims, 
+    exchanges, 
+    listings, 
+    requests, 
+    acceptClaim, 
+    declineClaim, 
+    setActiveExchangeForModal 
+  } = useApp();
 
-  const [verifyModalClaim, setVerifyModalClaim] = useState<Claim | null>(null);
-  const [chatModalClaim, setChatModalClaim] = useState<Claim | null>(null);
+  const [activeSubTab, setActiveSubTab] = useState<'claims' | 'given' | 'requests' | 'exchanges'>('claims');
 
-  const myClaims = claims;
-  const myGives = listings.filter(l => l.providerId === currentUser.id);
+  // Filter items relevant to current user
+  const myClaims = claims.filter(c => c.claimantId === currentUser.id);
+  const myGivenListings = listings.filter(l => l.ownerId === currentUser.id);
+  const incomingClaims = claims.filter(c => c.ownerId === currentUser.id);
   const myRequests = requests.filter(r => r.requesterId === currentUser.id);
+  const myExchanges = exchanges.filter(e => e.giverId === currentUser.id || e.receiverId === currentUser.id);
 
   return (
-    <div className="space-y-4 px-4 py-4 pb-24">
+    <div className="max-w-7xl mx-auto px-4 lg:px-8 py-6 space-y-6 animate-in fade-in duration-200">
       
-      {/* Page Header & Tabs */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h1 className="text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-            <Activity className="w-5 h-5 text-emerald-600" /> My Activity
-          </h1>
-          <span className="text-xs font-semibold text-slate-500">
-            {currentUser.name}
-          </span>
-        </div>
-
-        {/* 3 Tab Selector */}
-        <div className="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded-2xl border border-slate-200/60">
-          <button
-            onClick={() => setTab('CLAIMS')}
-            className={`py-2 rounded-xl text-xs font-bold transition ${
-              tab === 'CLAIMS'
-                ? 'bg-white text-emerald-700 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            Claims ({myClaims.length})
-          </button>
-
-          <button
-            onClick={() => setTab('GIVES')}
-            className={`py-2 rounded-xl text-xs font-bold transition ${
-              tab === 'GIVES'
-                ? 'bg-white text-emerald-700 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            Gives ({myGives.length})
-          </button>
-
-          <button
-            onClick={() => setTab('REQUESTS')}
-            className={`py-2 rounded-xl text-xs font-bold transition ${
-              tab === 'REQUESTS'
-                ? 'bg-white text-emerald-700 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            Requests ({myRequests.length})
-          </button>
-        </div>
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-extrabold text-stone-900">Activity & Exchanges</h1>
+        <p className="text-xs text-stone-500">Track your claims, items given, requests, and active handovers</p>
       </div>
 
-      {/* TAB 1: MY CLAIMS */}
-      {tab === 'CLAIMS' && (
-        <div className="space-y-3">
-          {myClaims.length > 0 ? (
-            myClaims.map((claim) => (
-              <div key={claim.id} className="bg-white border border-slate-200 rounded-3xl p-4 shadow-sm space-y-3.5 hover:border-slate-300 transition">
-                
-                {/* Header */}
-                <div className="flex items-start justify-between gap-3">
+      {/* Sub Tabs */}
+      <div className="flex items-center gap-2 border-b border-stone-200 pb-3 overflow-x-auto no-scrollbar">
+        <button
+          onClick={() => setActiveSubTab('claims')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all relative ${
+            activeSubTab === 'claims'
+              ? 'bg-emerald-600 text-white shadow-xs'
+              : 'bg-white border border-stone-200 text-stone-700 hover:bg-stone-50'
+          }`}
+        >
+          <span>My Claims</span>
+          {myClaims.length > 0 && (
+            <span className="ml-2 px-1.5 py-0.5 text-[10px] bg-white/20 text-white rounded-full">
+              {myClaims.length}
+            </span>
+          )}
+        </button>
+
+        <button
+          onClick={() => setActiveSubTab('given')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all relative ${
+            activeSubTab === 'given'
+              ? 'bg-emerald-600 text-white shadow-xs'
+              : 'bg-white border border-stone-200 text-stone-700 hover:bg-stone-50'
+          }`}
+        >
+          <span>Items Given ({myGivenListings.length})</span>
+          {incomingClaims.filter(c => c.status === 'pending').length > 0 && (
+            <span className="ml-2 px-1.5 py-0.5 text-[10px] bg-amber-500 text-white font-bold rounded-full">
+              {incomingClaims.filter(c => c.status === 'pending').length} new
+            </span>
+          )}
+        </button>
+
+        <button
+          onClick={() => setActiveSubTab('requests')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+            activeSubTab === 'requests'
+              ? 'bg-emerald-600 text-white shadow-xs'
+              : 'bg-white border border-stone-200 text-stone-700 hover:bg-stone-50'
+          }`}
+        >
+          <span>My Requests ({myRequests.length})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveSubTab('exchanges')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+            activeSubTab === 'exchanges'
+              ? 'bg-emerald-600 text-white shadow-xs'
+              : 'bg-white border border-stone-200 text-stone-700 hover:bg-stone-50'
+          }`}
+        >
+          <span>Exchanges ({myExchanges.length})</span>
+        </button>
+      </div>
+
+      {/* Tab 1: Claims */}
+      {activeSubTab === 'claims' && (
+        <div className="space-y-4">
+          {myClaims.length === 0 ? (
+            <div className="p-10 text-center bg-white rounded-3xl border border-stone-200">
+              <p className="font-bold text-stone-800 text-sm">No items claimed yet.</p>
+              <p className="text-xs text-stone-500 mt-1">Explore nearby items to claim something you need!</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {myClaims.map((claim) => (
+                <div key={claim.id} className="p-4 bg-white rounded-2xl border border-stone-200 shadow-xs flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
-                    <img 
-                      src={claim.listingImage || 'https://images.unsplash.com/photo-1555244162-803834f70033?auto=format&fit=crop&q=80&w=200'} 
-                      alt={claim.listingTitle} 
-                      className="w-12 h-12 rounded-2xl object-cover border border-slate-100" 
+                    <img
+                      src={claim.listingImage || 'https://images.unsplash.com/photo-1611125832047-1d7ad1e8e488?auto=format&fit=crop&q=80&w=600'}
+                      alt={claim.listingTitle}
+                      className="w-14 h-14 rounded-xl object-cover"
                     />
                     <div>
-                      <h4 className="font-bold text-sm text-slate-900 line-clamp-1">{claim.listingTitle}</h4>
-                      <p className="text-xs text-slate-500 font-medium mt-0.5">
-                        <strong className="text-emerald-700">{claim.quantity} {claim.unit}</strong> · {claim.pickupMethod === 'DELIVERY' ? 'Hyperlocal Delivery (₹59)' : 'Self Pickup'}
-                      </p>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-stone-500">{claim.listingCategory}</span>
+                      <h4 className="font-bold text-stone-900 text-sm">{claim.listingTitle}</h4>
+                      <p className="text-xs text-stone-500 mt-0.5">Giver: {claim.ownerName}</p>
                     </div>
                   </div>
 
-                  <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider ${
-                    claim.status === 'COMPLETED' 
-                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
-                      : 'bg-amber-50 text-amber-700 border border-amber-200'
-                  }`}>
-                    {claim.status === 'COMPLETED' ? 'Completed' : 'Claimed'}
-                  </span>
-                </div>
-
-                {/* OTP Verification Bar */}
-                {claim.status !== 'COMPLETED' ? (
-                  <div className="bg-slate-900 text-white p-3.5 rounded-2xl flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-slate-800 text-emerald-400 flex items-center justify-center">
-                        <KeyRound size={16} />
-                      </div>
-                      <div>
-                        <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider block">Pickup Code</span>
-                        <span className="text-xl font-extrabold font-mono text-emerald-400 tracking-wider">{claim.otpCode}</span>
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={() => setVerifyModalClaim(claim)}
-                      className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition active:scale-95 shadow-xs"
-                    >
-                      Verify OTP
-                    </button>
-                  </div>
-                ) : (
-                  <div className="bg-emerald-50/80 border border-emerald-100 p-3 rounded-2xl flex items-center gap-2 text-xs text-emerald-800 font-medium">
-                    <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
-                    <span>Pickup verified and transaction completed successfully!</span>
-                  </div>
-                )}
-
-                {/* Footer details */}
-                <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-100 text-slate-500">
-                  <div className="flex items-center gap-1.5">
-                    <MapPin size={14} className="text-slate-400" />
-                    <span className="truncate max-w-[180px]">From: <strong className="text-slate-800">{claim.providerName}</strong></span>
-                  </div>
-
-                  <button
-                    onClick={() => setChatModalClaim(claim)}
-                    className="flex items-center gap-1 text-emerald-700 font-bold hover:underline bg-emerald-50 px-2.5 py-1 rounded-lg"
-                  >
-                    <MessageSquare size={14} /> Chat
-                  </button>
-                </div>
-              </div>
-            ))
-          ) : (
-            <EmptyState 
-              icon={<Package size={28} />}
-              title="No Claims Yet"
-              description="Find free food, books, or household items nearby and claim them instantly."
-              actionLabel="Explore Items Nearby"
-              onAction={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            />
-          )}
-        </div>
-      )}
-
-      {/* TAB 2: MY GIVES */}
-      {tab === 'GIVES' && (
-        <div className="space-y-3">
-          {myGives.length > 0 ? (
-            myGives.map((item) => (
-              <div key={item.id} className="bg-white border border-slate-200 rounded-3xl p-4 shadow-sm space-y-3 hover:border-slate-300 transition">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <img 
-                      src={item.images[0]} 
-                      alt={item.title} 
-                      className="w-12 h-12 rounded-2xl object-cover border border-slate-100" 
-                    />
-                    <div>
-                      <h4 className="font-bold text-sm text-slate-900 line-clamp-1">{item.title}</h4>
-                      <p className="text-xs text-slate-500 mt-0.5">
-                        <strong className="text-slate-900">{item.remainingQuantity}</strong> of {item.quantity} {item.unit} remaining
-                      </p>
-                    </div>
-                  </div>
-
-                  <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full border border-emerald-200">
-                    {item.status}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100">
-                  <div className="flex items-center gap-1">
-                    <Clock size={14} className="text-slate-400" />
-                    <span>Expires: {item.pickupDeadlineTime || 'Soon'}</span>
-                  </div>
-                  <span className="font-semibold text-emerald-600">
-                    {item.price === 0 ? 'FREE' : `₹${item.price}`}
-                  </span>
-                </div>
-              </div>
-            ))
-          ) : (
-            <EmptyState 
-              icon={<Sparkles size={28} />}
-              title="No Active Gives"
-              description="Do you have extra food, meals, books, or items lying around? Share them with your community."
-              actionLabel="Give Something"
-              onAction={() => setGiveModalOpen(true)}
-            />
-          )}
-        </div>
-      )}
-
-      {/* TAB 3: MY REQUESTS */}
-      {tab === 'REQUESTS' && (
-        <div className="space-y-3">
-          {myRequests.length > 0 ? (
-            myRequests.map((req) => (
-              <div key={req.id} className="bg-white border border-slate-200 rounded-3xl p-4 shadow-sm space-y-2 hover:border-slate-300 transition">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
-                      {req.urgency} Request
+                  <div className="text-right">
+                    <span className={`px-2.5 py-1 text-xs font-bold uppercase tracking-wider rounded-lg ${
+                      claim.status === 'accepted' ? 'bg-emerald-100 text-emerald-800' :
+                      claim.status === 'declined' ? 'bg-red-100 text-red-800' :
+                      'bg-amber-100 text-amber-800'
+                    }`}>
+                      {claim.status}
                     </span>
-                    <h4 className="font-bold text-sm text-slate-900 mt-1">{req.title}</h4>
-                    <p className="text-xs text-slate-500">{req.quantity} {req.unit} · Radius {req.radiusKm} km</p>
+                    <p className="text-[10px] text-stone-400 mt-1">
+                      {new Date(claim.createdAt).toLocaleDateString()}
+                    </p>
                   </div>
-                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-                    {req.status}
-                  </span>
                 </div>
-              </div>
-            ))
-          ) : (
-            <EmptyState 
-              icon={<HelpCircle size={28} />}
-              title="No Requests Posted"
-              description="Looking for specific items, food for a drive, or surplus supplies? Post a request to reach nearby givers."
-              actionLabel="Request An Item"
-              onAction={() => setRequestModalOpen(true)}
-            />
+              ))}
+            </div>
           )}
         </div>
       )}
 
-      {/* OTP Verification Modal */}
-      <OTPVerificationModal
-        claim={verifyModalClaim}
-        onClose={() => setVerifyModalClaim(null)}
-      />
+      {/* Tab 2: Given (Manage incoming claims!) */}
+      {activeSubTab === 'given' && (
+        <div className="space-y-6">
+          
+          {/* Incoming Claim Requests */}
+          {incomingClaims.filter(c => c.status === 'pending').length > 0 && (
+            <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 space-y-3">
+              <h3 className="font-bold text-emerald-900 text-sm flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-emerald-600" />
+                <span>Pending Claims Needing Your Response</span>
+              </h3>
 
-      {/* Chat Modal */}
-      <ChatModal
-        claim={chatModalClaim}
-        onClose={() => setChatModalClaim(null)}
-      />
+              <div className="space-y-3">
+                {incomingClaims.filter(c => c.status === 'pending').map((claim) => (
+                  <div key={claim.id} className="p-4 bg-white rounded-xl border border-emerald-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={claim.claimantAvatar || 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=200'}
+                        alt={claim.claimantName}
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
+                      <div>
+                        <h4 className="font-bold text-stone-900 text-xs">
+                          {claim.claimantName} claimed "{claim.listingTitle}"
+                        </h4>
+                        {claim.message && (
+                          <p className="text-xs text-stone-600 italic mt-0.5">
+                            "{claim.message}"
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                      <button
+                        onClick={() => declineClaim(claim.id)}
+                        className="flex-1 sm:flex-none py-1.5 px-3 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-semibold rounded-lg"
+                      >
+                        Decline
+                      </button>
+                      <button
+                        onClick={() => acceptClaim(claim.id)}
+                        className="flex-1 sm:flex-none py-1.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-xs"
+                      >
+                        Accept Claim
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Given Listings */}
+          <div className="space-y-3">
+            <h3 className="font-bold text-stone-900 text-sm">Your Listings</h3>
+            {myGivenListings.length === 0 ? (
+              <div className="p-8 text-center bg-white rounded-3xl border border-stone-200">
+                <p className="font-bold text-stone-700 text-sm">No items listed yet.</p>
+              </div>
+            ) : (
+              myGivenListings.map((listing) => (
+                <div key={listing.id} className="p-4 bg-white rounded-2xl border border-stone-200 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={listing.images[0]}
+                      alt={listing.title}
+                      className="w-12 h-12 rounded-xl object-cover"
+                    />
+                    <div>
+                      <h4 className="font-bold text-stone-900 text-xs">{listing.title}</h4>
+                      <p className="text-[11px] text-stone-500 mt-0.5">Pickup: {listing.pickupArea}</p>
+                    </div>
+                  </div>
+
+                  <span className={`px-2.5 py-1 text-xs font-bold rounded-lg ${
+                    listing.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-100 text-stone-700'
+                  }`}>
+                    {listing.status}
+                  </span>
+                </div>
+              ))
+            )}
+          </div>
+
+        </div>
+      )}
+
+      {/* Tab 3: Requests */}
+      {activeSubTab === 'requests' && (
+        <div className="space-y-3">
+          {myRequests.length === 0 ? (
+            <div className="p-8 text-center bg-white rounded-3xl border border-stone-200">
+              <p className="font-bold text-stone-700 text-sm">No requests posted yet.</p>
+            </div>
+          ) : (
+            myRequests.map((req) => (
+              <div key={req.id} className="p-4 bg-white rounded-2xl border border-stone-200 flex items-center justify-between gap-3">
+                <div>
+                  <h4 className="font-bold text-stone-900 text-sm">{req.title}</h4>
+                  <p className="text-xs text-stone-500 mt-0.5">Urgency: {req.urgency} • Location: {req.location}</p>
+                </div>
+                <span className="px-2.5 py-1 text-xs font-bold bg-stone-100 text-stone-700 rounded-lg">
+                  {req.status}
+                </span>
+              </div>
+            ))
+          )}
+        </div>
+      )}
+
+      {/* Tab 4: Active Exchanges */}
+      {activeSubTab === 'exchanges' && (
+        <div className="space-y-3">
+          {myExchanges.length === 0 ? (
+            <div className="p-8 text-center bg-white rounded-3xl border border-stone-200">
+              <p className="font-bold text-stone-700 text-sm">No active exchanges.</p>
+            </div>
+          ) : (
+            myExchanges.map((exch) => (
+              <div
+                key={exch.id}
+                onClick={() => setActiveExchangeForModal(exch)}
+                className="p-4 bg-white rounded-2xl border border-stone-200 hover:border-emerald-300 transition-all cursor-pointer flex items-center justify-between gap-3 shadow-xs"
+              >
+                <div className="flex items-center gap-3">
+                  <img
+                    src={exch.listingImage || 'https://images.unsplash.com/photo-1611125832047-1d7ad1e8e488?auto=format&fit=crop&q=80&w=600'}
+                    alt={exch.listingTitle}
+                    className="w-12 h-12 rounded-xl object-cover"
+                  />
+                  <div>
+                    <h4 className="font-bold text-stone-900 text-xs">{exch.listingTitle}</h4>
+                    <p className="text-[11px] text-stone-500 mt-0.5">Pickup: {exch.pickupArea}</p>
+                  </div>
+                </div>
+
+                <div className="text-right">
+                  <span className={`px-2.5 py-1 text-xs font-bold rounded-lg ${
+                    exch.status === 'completed' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                  }`}>
+                    {exch.status}
+                  </span>
+                  <p className="text-[10px] text-emerald-700 font-semibold mt-1">Tap to View Details</p>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      )}
 
     </div>
   );

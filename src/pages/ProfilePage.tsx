@@ -1,119 +1,126 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
-import { 
-  ShieldCheck, 
-  MapPin, 
-  Globe2, 
-  BarChart2, 
-  ShieldAlert, 
-  Calendar, 
-  GitMerge, 
-  ChevronRight 
-} from 'lucide-react';
+import { ShieldCheck, Star, PackageCheck, Heart, User, MapPin, Building2, RefreshCw } from 'lucide-react';
 
 export const ProfilePage: React.FC = () => {
-  const { currentUser, setOnboardingOpen, setActiveTab } = useApp();
+  const { currentUser, setCurrentUser, users, organization } = useApp();
 
   return (
-    <div className="space-y-5 px-4 py-5 overflow-x-hidden">
+    <div className="max-w-4xl mx-auto px-4 lg:px-8 py-6 space-y-6 animate-in fade-in duration-200">
       
-      {/* Profile Header */}
-      <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm space-y-4 text-center sm:text-left flex flex-col sm:flex-row items-center gap-4">
-        <img 
-          src={currentUser.avatar} 
-          alt={currentUser.name} 
-          className="w-16 h-16 rounded-full object-cover ring-2 ring-emerald-500/30"
-        />
+      {/* Profile Header Card */}
+      <div className="bg-white rounded-3xl border border-stone-200 p-6 shadow-xs flex flex-col sm:flex-row items-center sm:items-start gap-5">
+        
+        {/* Avatar */}
+        <div className="relative">
+          <img
+            src={currentUser.avatar}
+            alt={currentUser.name}
+            className="w-20 h-20 rounded-full object-cover ring-4 ring-emerald-600/20"
+          />
+          <div className="absolute -bottom-1 -right-1 bg-emerald-600 text-white p-1 rounded-full shadow-xs">
+            <ShieldCheck className="w-4 h-4" />
+          </div>
+        </div>
 
-        <div className="space-y-1 flex-1">
-          <div className="flex items-center justify-center sm:justify-start gap-1.5">
-            <h1 className="text-lg font-black text-slate-900">{currentUser.name}</h1>
-            {currentUser.isVerified && (
-              <ShieldCheck className="w-4 h-4 text-emerald-600" />
-            )}
+        {/* Info */}
+        <div className="flex-1 text-center sm:text-left space-y-1">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 justify-between">
+            <div>
+              <h1 className="text-xl font-extrabold text-stone-900">{currentUser.name}</h1>
+              <p className="text-xs text-stone-500">{currentUser.email}</p>
+            </div>
+            
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-800 border border-amber-200 rounded-full text-xs font-bold mx-auto sm:mx-0">
+              <Star className="w-3.5 h-3.5 fill-amber-400 stroke-amber-500" />
+              <span>{currentUser.reliabilityRating || 5.0} Reliability Score</span>
+            </div>
           </div>
 
-          <p className="text-xs text-slate-500 flex items-center justify-center sm:justify-start gap-1">
-            <MapPin className="w-3 h-3 text-emerald-600" /> {currentUser.location}
-          </p>
+          <div className="pt-2 flex flex-wrap items-center justify-center sm:justify-start gap-2 text-xs text-stone-600">
+            <span className="flex items-center gap-1 bg-stone-100 px-2.5 py-1 rounded-lg">
+              <Building2 className="w-3.5 h-3.5 text-emerald-600" />
+              <span>{organization.name}</span>
+            </span>
+            {currentUser.department && (
+              <span className="bg-stone-100 px-2.5 py-1 rounded-lg">
+                {currentUser.department} ({currentUser.year || 'Student'})
+              </span>
+            )}
+            <span className="flex items-center gap-1 bg-stone-100 px-2.5 py-1 rounded-lg">
+              <MapPin className="w-3.5 h-3.5 text-emerald-600" />
+              <span>{currentUser.approximateLocation}</span>
+            </span>
+          </div>
+
+          {currentUser.bio && (
+            <p className="text-xs text-stone-600 pt-2 italic">
+              "{currentUser.bio}"
+            </p>
+          )}
+        </div>
+
+      </div>
+
+      {/* Impact Stats Grid */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="p-4 bg-white rounded-2xl border border-stone-200 text-center shadow-xs">
+          <p className="text-xl font-extrabold text-emerald-700">{currentUser.itemsGiven || 0}</p>
+          <p className="text-[11px] text-stone-500 font-medium mt-0.5">Items Given</p>
+        </div>
+
+        <div className="p-4 bg-white rounded-2xl border border-stone-200 text-center shadow-xs">
+          <p className="text-xl font-extrabold text-stone-900">{currentUser.itemsClaimed || 0}</p>
+          <p className="text-[11px] text-stone-500 font-medium mt-0.5">Items Claimed</p>
+        </div>
+
+        <div className="p-4 bg-white rounded-2xl border border-stone-200 text-center shadow-xs">
+          <p className="text-xl font-extrabold text-emerald-700">{currentUser.completedExchanges || 0}</p>
+          <p className="text-[11px] text-stone-500 font-medium mt-0.5">Completed Exchanges</p>
         </div>
       </div>
 
-      {/* Human Stats */}
-      <div className="grid grid-cols-3 gap-2.5">
-        <div className="bg-white p-3.5 rounded-2xl border border-slate-200 text-center shadow-sm">
-          <p className="text-xl font-black text-emerald-600">{currentUser.itemsGiven}</p>
-          <p className="text-[11px] font-bold text-slate-600 mt-0.5">given</p>
+      {/* Switch User / Role Testing Section */}
+      <div className="p-5 bg-stone-100/70 rounded-3xl border border-stone-200 space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <RefreshCw className="w-4 h-4 text-emerald-600" />
+            <h3 className="font-bold text-stone-900 text-sm">Switch User Account (Development & Testing)</h3>
+          </div>
+          <span className="text-[10px] text-stone-500">Test Give & Claim interactions</span>
         </div>
-        <div className="bg-white p-3.5 rounded-2xl border border-slate-200 text-center shadow-sm">
-          <p className="text-xl font-black text-teal-600">{currentUser.itemsClaimed}</p>
-          <p className="text-[11px] font-bold text-slate-600 mt-0.5">claimed</p>
-        </div>
-        <div className="bg-white p-3.5 rounded-2xl border border-slate-200 text-center shadow-sm">
-          <p className="text-xl font-black text-slate-900">{currentUser.successRate}%</p>
-          <p className="text-[11px] font-bold text-slate-600 mt-0.5">completed</p>
-        </div>
-      </div>
 
-      {/* App Modules Shortcuts */}
-      <div className="bg-white rounded-3xl p-4 border border-slate-200 shadow-sm space-y-2">
-        <h3 className="font-extrabold text-slate-900 text-xs px-1">More tools</h3>
-
-        <div className="space-y-1 text-xs">
-          <button
-            onClick={() => setActiveTab('match')}
-            className="w-full flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 font-semibold text-slate-800 transition"
-          >
-            <div className="flex items-center gap-2">
-              <GitMerge className="w-4 h-4 text-emerald-600" />
-              <span>Smart Matching</span>
-            </div>
-            <ChevronRight className="w-4 h-4 text-slate-400" />
-          </button>
-
-          <button
-            onClick={() => setActiveTab('event')}
-            className="w-full flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 font-semibold text-slate-800 transition"
-          >
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-emerald-600" />
-              <span>Event Surplus Calculator</span>
-            </div>
-            <ChevronRight className="w-4 h-4 text-slate-400" />
-          </button>
-
-          <button
-            onClick={() => setActiveTab('dashboards')}
-            className="w-full flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 font-semibold text-slate-800 transition"
-          >
-            <div className="flex items-center gap-2">
-              <BarChart2 className="w-4 h-4 text-emerald-600" />
-              <span>Business & Organization Dashboards</span>
-            </div>
-            <ChevronRight className="w-4 h-4 text-slate-400" />
-          </button>
-
-          <button
-            onClick={() => setActiveTab('impact')}
-            className="w-full flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 font-semibold text-slate-800 transition"
-          >
-            <div className="flex items-center gap-2">
-              <Globe2 className="w-4 h-4 text-emerald-600" />
-              <span>SPARE Impact</span>
-            </div>
-            <ChevronRight className="w-4 h-4 text-slate-400" />
-          </button>
-
-          <button
-            onClick={() => setActiveTab('admin')}
-            className="w-full flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 font-semibold text-slate-800 transition"
-          >
-            <div className="flex items-center gap-2">
-              <ShieldAlert className="w-4 h-4 text-rose-600" />
-              <span>Moderation Admin</span>
-            </div>
-            <ChevronRight className="w-4 h-4 text-slate-400" />
-          </button>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {users.map((u) => (
+            <button
+              key={u.id}
+              onClick={() => setCurrentUser(u)}
+              className={`p-3 rounded-2xl border text-left flex items-center justify-between transition-all ${
+                currentUser.id === u.id
+                  ? 'bg-emerald-600 text-white font-bold shadow-xs'
+                  : 'bg-white border-stone-200 hover:bg-stone-50 text-stone-800'
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <img
+                  src={u.avatar}
+                  alt={u.name}
+                  className="w-8 h-8 rounded-full object-cover"
+                />
+                <div>
+                  <p className="text-xs font-semibold">{u.name}</p>
+                  <p className={`text-[10px] ${currentUser.id === u.id ? 'text-emerald-100' : 'text-stone-400'}`}>
+                    {u.department ? `${u.department} ${u.year || ''}` : u.role}
+                  </p>
+                </div>
+              </div>
+              {currentUser.id === u.id && (
+                <span className="text-[10px] uppercase font-bold bg-white/20 px-2 py-0.5 rounded-full">
+                  Active
+                </span>
+              )}
+            </button>
+          ))}
         </div>
       </div>
 
