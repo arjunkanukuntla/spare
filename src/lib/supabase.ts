@@ -1,11 +1,12 @@
-// SPARE Supabase Driver Configuration
-// Connects to PostgreSQL Supabase instance when environment variables are set.
+import { createClient } from '@supabase/supabase-js';
 
 const env = (import.meta as any).env || {};
-const supabaseUrl = env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = env.VITE_SUPABASE_ANON_KEY || '';
+const supabaseUrl = env.VITE_SUPABASE_URL || 'https://ndjretqmgtxlnlrfmxtx.supabase.co';
+const supabaseAnonKey = env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_o1jfCV4NNi-uk7g08yVaJQ_zQThOgY7';
 
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export interface SupabaseConfig {
   url: string;

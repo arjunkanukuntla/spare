@@ -16,6 +16,7 @@ import {
   INITIAL_CLAIMS, 
   INITIAL_EXCHANGES 
 } from '../data/seedData';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 const KEYS = {
   USERS: 'spare_users_v2',
@@ -30,7 +31,6 @@ const KEYS = {
 };
 
 class DBService {
-  // Init storage with seed data if empty
   constructor() {
     this.init();
   }
@@ -63,6 +63,22 @@ class DBService {
     if (!localStorage.getItem(KEYS.CURRENT_USER)) {
       localStorage.setItem(KEYS.CURRENT_USER, JSON.stringify(INITIAL_USERS[0]));
     }
+
+    // Async sync with Supabase if configured
+    if (isSupabaseConfigured) {
+      this.syncSupabase();
+    }
+  }
+
+  private async syncSupabase() {
+    try {
+      const { data: dbListings, error } = await supabase.from('listings').select('*');
+      if (!error && dbListings && dbListings.length > 0) {
+        console.log('Synced listings from Supabase PostgreSQL:', dbListings.length);
+      }
+    } catch (e) {
+      console.warn('Supabase sync notice:', e);
+    }
   }
 
   // --- USERS & AUTH ---
@@ -87,6 +103,18 @@ class DBService {
 
     const users = this.getUsers().map(u => u.id === current.id ? newUser : u);
     localStorage.setItem(KEYS.USERS, JSON.stringify(users));
+
+    if (isSupabaseConfigured) {
+      supabase.from('users').upsert([
+        {
+          id: newUser.id,
+          name: newUser.name,
+          email: newUser.email,
+          approximate_location: newUser.approximateLocation,
+        }
+      ]).then(() => {});
+    }
+
     return newUser;
   }
 
@@ -143,12 +171,34 @@ class DBService {
     });
     localStorage.setItem(KEYS.USERS, JSON.stringify(users));
 
+    // Upsert to Supabase
+    if (isSupabaseConfigured) {
+      supabase.from('listings').insert([
+        {
+          title: newListing.title,
+          description: newListing.description,
+          category_id: newListing.category.toLowerCase().replace(/[^a-z0-9]/g, '_'),
+          condition: newListing.condition,
+          status: newListing.status,
+          quantity: newListing.quantity,
+          approximate_location: newListing.approximateLocation,
+          pickup_area: newListing.pickupArea,
+        }
+      ]).then(({ error }) => {
+        if (error) console.warn('Supabase listing insert notice:', error.message);
+      });
+    }
+
     return newListing;
   }
 
   updateListingStatus(listingId: string, status: Listing['status']) {
     const listings = this.getListings().map(l => l.id === listingId ? { ...l, status } : l);
     localStorage.setItem(KEYS.LISTINGS, JSON.stringify(listings));
+
+    if (isSupabaseConfigured) {
+      supabase.from('listings').update({ status }).eq('id', listingId).then(() => {});
+    }
   }
 
   deleteListing(listingId: string) {
@@ -173,6 +223,20 @@ class DBService {
 
     const updated = [newRequest, ...requests];
     localStorage.setItem(KEYS.REQUESTS, JSON.stringify(updated));
+
+    if (isSupabaseConfigured) {
+      supabase.from('requests').insert([
+        {
+          title: newRequest.title,
+          description: newRequest.description,
+          category_id: newRequest.category.toLowerCase().replace(/[^a-z0-9]/g, '_'),
+          status: newRequest.status,
+          location: newRequest.location,
+          urgency: newRequest.urgency,
+        }
+      ]).then(() => {});
+    }
+
     return newRequest;
   }
 
@@ -204,13 +268,11 @@ class DBService {
       updatedAt: new Date().toISOString(),
     };
 
-    // Update listing status to CLAIMED
     this.updateListingStatus(listingId, 'CLAIMED');
 
     const updatedClaims = [newClaim, ...claims];
     localStorage.setItem(KEYS.CLAIMS, JSON.stringify(updatedClaims));
 
-    // Notify owner
     this.createNotification({
       userId: listing.ownerId,
       type: 'CLAIM_RECEIVED',
@@ -230,14 +292,11 @@ class DBService {
     const listing = this.getListingById(claim.listingId);
     if (!listing) return null;
 
-    // Update claim status
     const updatedClaims = claims.map(c => c.id === claimId ? { ...c, status: 'accepted' as const, updatedAt: new Date().toISOString() } : c);
     localStorage.setItem(KEYS.CLAIMS, JSON.stringify(updatedClaims));
 
-    // Update listing status to ACCEPTED
     this.updateListingStatus(claim.listingId, 'ACCEPTED');
 
-    // Create Exchange
     const exchanges = this.getExchanges();
     const newExchange: Exchange = {
       id: `exch_${Date.now()}`,
@@ -261,7 +320,6 @@ class DBService {
 
     localStorage.setItem(KEYS.EXCHANGES, JSON.stringify([newExchange, ...exchanges]));
 
-    // Notify claimant
     this.createNotification({
       userId: claim.claimantId,
       type: 'CLAIM_ACCEPTED',
@@ -281,10 +339,8 @@ class DBService {
     const updatedClaims = claims.map(c => c.id === claimId ? { ...c, status: 'declined' as const, updatedAt: new Date().toISOString() } : c);
     localStorage.setItem(KEYS.CLAIMS, JSON.stringify(updatedClaims));
 
-    // Re-open listing to ACTIVE
     this.updateListingStatus(claim.listingId, 'ACTIVE');
 
-    // Notify claimant
     this.createNotification({
       userId: claim.claimantId,
       type: 'CLAIM_DECLINED',
@@ -329,10 +385,8 @@ class DBService {
     localStorage.setItem(KEYS.EXCHANGES, JSON.stringify(updatedExchanges));
 
     if (bothConfirmed) {
-      // Mark listing COMPLETED
       this.updateListingStatus(exch.listingId, 'COMPLETED');
 
-      // Update user stats
       const users = this.getUsers().map(u => {
         if (u.id === exch.giverId) {
           return { ...u, completedExchanges: (u.completedExchanges || 0) + 1 };
@@ -344,7 +398,6 @@ class DBService {
       });
       localStorage.setItem(KEYS.USERS, JSON.stringify(users));
 
-      // Dispatch notifications
       this.createNotification({
         userId: exch.giverId,
         type: 'EXCHANGE_COMPLETED',
@@ -370,7 +423,6 @@ class DBService {
     const updatedExchanges = exchanges.map(e => e.id === exchangeId ? { ...e, status: 'cancelled' as const, cancelledAt: new Date().toISOString() } : e);
     localStorage.setItem(KEYS.EXCHANGES, JSON.stringify(updatedExchanges));
 
-    // Re-open listing
     this.updateListingStatus(exch.listingId, 'ACTIVE');
   }
 
@@ -391,7 +443,6 @@ class DBService {
     const updated = [newRating, ...ratings];
     localStorage.setItem(KEYS.RATINGS, JSON.stringify(updated));
 
-    // Update user reliability score
     const targetUserId = ratingData.reviewedUserId;
     const userRatings = updated.filter(r => r.reviewedUserId === targetUserId);
     const avg = Number((userRatings.reduce((acc, curr) => acc + curr.rating, 0) / userRatings.length).toFixed(2));
